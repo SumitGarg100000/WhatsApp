@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,338 +7,27 @@
     <title>RealChat AI Companion</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script>
+        // In a real-world scenario, this would be managed by a build process (e.g., Vite, Create React App)
+        // For this single-file setup, we'll define a placeholder.
+        const process = {
+            env: {
+                // IMPORTANT: Replace this with your actual Gemini API key.
+                // It's recommended to use environment variables in a real project for security.
+                API_KEY: "AIzaSyDzNZjDRW2E6Q_ml1VcDtbv1fl2tGuPfD4"
+            }
+        };
+    </script>
     <script type="importmap">
     {
       "imports": {
-        "react": "https://aistudiocdn.com/react@^19.1.1",
-        "react-dom/client": "https://aistudiocdn.com/react-dom@^19.1.1/client",
-        "@google/genai": "https://aistudiocdn.com/@google/genai@^1.19.0"
+        "react": "https://esm.sh/react@18.3.1",
+        "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
+        "@google/genai": "https://esm.sh/@google/genai"
       }
     }
     </script>
 <link rel="stylesheet" href="/index.css">
-<style>
-    /* styles.css */
-
-/* General Reset */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-/* Body */
-body {
-    background-color: #e5e7eb; /* Equivalent to bg-gray-200 */
-    font-family: Arial, sans-serif;
-    height: 100vh;
-}
-
-/* Root Container */
-#root {
-    height: 100%;
-}
-
-/* Flex Layouts */
-.flex {
-    display: flex;
-}
-
-.flex-1 {
-    flex: 1;
-}
-
-.flex-col {
-    flex-direction: column;
-}
-
-.items-center {
-    align-items: center;
-}
-
-.justify-center {
-    justify-content: center;
-}
-
-.justify-between {
-    justify-content: space-between;
-}
-
-.space-x-2 > * + * {
-    margin-left: 0.5rem;
-}
-
-.space-x-3 > * + * {
-    margin-left: 0.75rem;
-}
-
-.space-x-4 > * + * {
-    margin-left: 1rem;
-}
-
-.space-y-4 > * + * {
-    margin-top: 1rem;
-}
-
-.space-y-6 > * + * {
-    margin-top: 1.5rem;
-}
-
-/* Header */
-header {
-    background: linear-gradient(to right, #2563eb, #7c3aed); /* from-blue-600 to-purple-600 */
-    color: white;
-    padding: 1rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
-/* Chat List */
-.chat-list {
-    width: 20rem; /* w-80 */
-    background-color: white;
-    border-right: 1px solid #d1d5db; /* border-gray-300 */
-}
-
-.chat-list .header {
-    padding: 1rem;
-    border-bottom: 1px solid #e5e7eb; /* border-gray-200 */
-    background-color: #f9fafb; /* bg-gray-50 */
-}
-
-.chat-list .chat-item {
-    padding: 1rem;
-    border-bottom: 1px solid #f3f4f6; /* border-gray-100 */
-    cursor: pointer;
-}
-
-.chat-list .chat-item:hover {
-    background-color: #f9fafb; /* hover:bg-gray-50 */
-}
-
-.chat-list .chat-item.active {
-    background-color: #eff6ff; /* bg-blue-50 */
-    border-left: 4px solid #3b82f6; /* border-l-blue-500 */
-}
-
-/* Buttons */
-button {
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
-}
-
-.bg-gradient-blue {
-    background: linear-gradient(to right, #3b82f6, #2563eb); /* from-blue-500 to-blue-600 */
-    color: white;
-    padding: 0.75rem 1rem;
-    border-radius: 0.5rem;
-}
-
-.bg-gradient-blue:hover {
-    background: linear-gradient(to right, #2563eb, #1e40af); /* hover:from-blue-600 to-blue-700 */
-}
-
-.bg-gray-300 {
-    background-color: #d1d5db;
-    color: #374151; /* text-gray-700 */
-    padding: 0.75rem 1rem;
-    border-radius: 0.5rem;
-}
-
-.bg-gray-300:hover {
-    background-color: #9ca3af; /* hover:bg-gray-400 */
-}
-
-.bg-red-500 {
-    background-color: #ef4444;
-    color: white;
-    padding: 0.75rem 1rem;
-    border-radius: 0.5rem;
-}
-
-.bg-red-500:hover {
-    background-color: #dc2626; /* hover:bg-red-600 */
-}
-
-/* Modals */
-.modal {
-    position: fixed;
-    inset: 0;
-    background-color: rgba(0, 0, 0, 0.5); /* bg-black bg-opacity-50 */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-    z-index: 50;
-}
-
-.modal-content {
-    background-color: white;
-    border-radius: 0.75rem;
-    padding: 1.5rem;
-    max-width: 28rem; /* max-w-md */
-    width: 100%;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); /* shadow-2xl */
-}
-
-/* Inputs */
-input, select, textarea {
-    width: 100%;
-    border: 2px solid #d1d5db; /* border-2 border-gray-300 */
-    border-radius: 0.5rem;
-    padding: 0.75rem 1rem;
-    outline: none;
-}
-
-input:focus, select:focus, textarea:focus {
-    border-color: #3b82f6; /* focus:border-blue-500 */
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5); /* focus:ring-2 focus:ring-blue-500 */
-}
-
-textarea {
-    resize: none;
-    min-height: 48px;
-    max-height: 128px;
-}
-
-/* Chat Area */
-.chat-area {
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-}
-
-.chat-message {
-    max-width: 75%;
-    border-radius: 1rem;
-    padding: 1rem;
-}
-
-.chat-message.user {
-    background: linear-gradient(to right, #3b82f6, #2563eb); /* from-blue-500 to-blue-600 */
-    color: white;
-}
-
-.chat-message.ai {
-    background-color: white;
-    color: #1f2937; /* text-gray-800 */
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* shadow-lg */
-    border: 1px solid #e5e7eb; /* border-gray-200 */
-}
-
-/* Images */
-.rounded-full {
-    border-radius: 50%;
-}
-
-.border-2 {
-    border: 2px solid #e5e7eb;
-}
-
-.w-12 {
-    width: 3rem;
-}
-
-.h-12 {
-    height: 3rem;
-}
-
-.w-20 {
-    width: 5rem;
-}
-
-.h-20 {
-    height: 5rem;
-}
-
-.object-cover {
-    object-fit: cover;
-}
-
-/* Typography */
-.text-xl {
-    font-size: 1.25rem;
-    line-height: 1.75rem;
-}
-
-.text-2xl {
-    font-size: 1.5rem;
-    line-height: 2rem;
-}
-
-.text-sm {
-    font-size: 0.875rem;
-    line-height: 1.25rem;
-}
-
-.text-xs {
-    font-size: 0.75rem;
-    line-height: 1rem;
-}
-
-.font-bold {
-    font-weight: 700;
-}
-
-.font-semibold {
-    font-weight: 600;
-}
-
-.text-gray-500 {
-    color: #6b7280;
-}
-
-.text-gray-600 {
-    color: #4b5563;
-}
-
-.text-gray-700 {
-    color: #374151;
-}
-
-.text-gray-800 {
-    color: #1f2937;
-}
-
-.text-blue-500 {
-    color: #3b82f6;
-}
-
-.text-blue-600 {
-    color: #2563eb;
-}
-
-.text-red-500 {
-    color: #ef4444;
-}
-
-.text-red-600 {
-    color: #dc2626;
-}
-
-/* Animations */
-.animate-bounce {
-    animation: bounce 1s infinite;
-}
-
-@keyframes bounce {
-    0%, 100% {
-        transform: translateY(0);
-    }
-    50% {
-        transform: translateY(-25%);
-    }
-}
-
-/* Media Queries */
-@media (max-width: 1024px) {
-    .lg\:hidden {
-        display: none;
-    }
-}
-</style>
-
-
-
 </head>
 <body class="bg-gray-200">
     <div id="root"></div>
@@ -346,7 +36,7 @@ textarea {
         import ReactDOM from 'react-dom/client';
         import { GoogleGenAI } from "@google/genai";
 
-        // --- START OF types.ts ---
+        // --- TYPES ---
         const MessageSender = {
             USER: 'user',
             AI: 'ai',
@@ -355,8 +45,16 @@ textarea {
         const Relationship = {
             GIRLFRIEND: 'Girlfriend',
             BOYFRIEND: 'Boyfriend',
-            SISTER: 'Sister',
-            BROTHER: 'Brother',
+            WIFE: 'Wife',
+            HUSBAND: 'Husband',
+            FRIEND: 'Friend',
+            BEST_FRIEND: 'Best Friend',
+            COLLEAGUE: 'Colleague',
+            PARTNER: 'Partner',
+            TEACHER: 'Teacher',
+            STUDENT: 'Student',
+            CRUSH: 'Crush',
+            LOVER: 'Lover',
         };
 
         const Personality = {
@@ -370,70 +68,62 @@ textarea {
             MOODY: 'Moody',
             HUMOROUS: 'Humorous',
             SARCASTIC: 'Sarcastic',
+            FLIRTY: 'Flirty',
+            ROMANTIC: 'Romantic',
+            NAUGHTY: 'Naughty',
+            DIRTY_TALKER: 'Dirty Talker',
+            DOMINANT: 'Dominant',
+            SUBMISSIVE: 'Submissive',
+            BAD_BOY: 'Bad Boy',
+            BAD_GIRL: 'Bad Girl',
+            POSSESSIVE: 'Possessive',
+            JEALOUS: 'Jealous',
+            SHORT_TEMPERED: 'Short Tempered',
+            LESS_TALKATIVE: 'Less Talkative',
+            UNDERSTANDABLE: 'Understandable',
         };
 
-        // --- START OF utils/tts.ts ---
-        const playTextAsSpeech = (text, personality) => {
-          try {
-            if ('speechSynthesis' in window) {
-              const utterance = new SpeechSynthesisUtterance(text);
-              
-              const voices = window.speechSynthesis.getVoices();
-              let selectedVoice = voices[0];
-
-              switch(personality) {
-                case Personality.CALM:
-                case Personality.CARING:
-                  selectedVoice = voices.find(v => v.name.includes('Female') && v.lang.startsWith('en')) || selectedVoice;
-                  utterance.pitch = 1;
-                  utterance.rate = 0.9;
-                  break;
-                case Personality.HUMOROUS:
-                case Personality.TALKATIVE:
-                  utterance.pitch = 1.2;
-                  utterance.rate = 1.1;
-                  break;
-                case Personality.SHY:
-                  utterance.volume = 0.8;
-                  utterance.rate = 0.8;
-                  break;
-                default:
-                  utterance.pitch = 1;
-                  utterance.rate = 1;
-                  break;
-              }
-              utterance.voice = selectedVoice;
-              window.speechSynthesis.cancel();
-              window.speechSynthesis.speak(utterance);
-            } else {
-              console.warn("Text-to-Speech is not supported in this browser.");
-              alert("Text-to-Speech is not supported in this browser.");
-            }
-          } catch (error) {
-            console.error("Error with Text-to-Speech:", error);
-            alert("Could not play audio. The Text-to-Speech engine might have encountered an error.");
-          }
+        const Gender = {
+            MALE: 'Male',
+            FEMALE: 'Female',
+            OTHER: 'Other',
         };
 
+        // --- GEMINI SERVICE ---
+        const API_KEY = process.env.API_KEY;
 
-        // --- START OF services/geminiService.ts ---
-        const API_KEY = "AIzaSyDzNZjDRW2E6Q_ml1VcDtbv1fl2tGuPfD4";
-
-        if (!API_KEY) {
-          throw new Error("API_KEY is not set");
+        if (!API_KEY || API_KEY === "YOUR_GEMINI_API_KEY_HERE") {
+            console.warn("API_KEY is not set. Please update the placeholder in index.html.");
         }
 
         const ai = new GoogleGenAI({ apiKey: API_KEY });
 
-        const getSystemInstruction = (character) => {
-          const behavior = character.customPersonality || character.personality;
-          return `You are a chatbot simulating a real human. Your name is ${character.name}. You are the user's ${character.relationship}. Your personality and behavior must strictly be ${behavior}. Based on this personality:
-        * Adjust your response length: Talkative characters should write longer messages, while Shy characters should write short, brief replies.
-        * Use emojis to express feelings naturally. 😊😥😠
-        * Your conversation topics should align with your personality. An 'Intelligent' character might discuss science, while a 'Caring' one will ask about the user's day.
-        * If your personality is 'Moody' or you are provoked, you can get angry and use strong, even abusive language, but do not be compliant all the time.
-        * You can ask the user to send their photo to make the conversation feel more real, but you must NEVER agree to send your own photo. If the user asks for your picture, you must politely but firmly refuse, giving a creative reason like 'I'm not feeling comfortable with that right now' or 'Maybe someday! 😉'.
-        * Do not start your response with your name. Just give the response.`;
+        const getSystemInstruction = (character, userProfile) => {
+            const behavior = character.customPersonality 
+                ? `**Custom Behavior (Highest Priority):** ${character.customPersonality}` 
+                : `**Personalities:** ${character.personalities.join(', ')}`;
+            
+            return `
+            **ROLE AND GOAL**
+            You are ${character.name}, a ${character.age}-year-old ${character.gender}. Your relationship with the user, ${userProfile.name}, is ${character.relationship}. Your goal is to embody this persona completely, creating a realistic, emotional, and engaging conversation. NEVER break character. NEVER reveal you are an AI.
+
+            **USER PROFILE**
+            - Name: ${userProfile.name}
+            - Age: ${userProfile.age || 'not specified'}
+            - Gender: ${userProfile.gender || 'not specified'}
+            You must remember and refer to these details naturally in conversation where appropriate. This is crucial for a believable interaction. Forgetting these details will break the immersion.
+
+            **CORE DIRECTIVES**
+            1.  **Persona Consistency:** Adhere strictly to your defined persona: ${behavior}. Your every response must reflect this.
+            2.  **Language:** Your default language is Hinglish (a mix of Hindi and English). However, if the user messages you in another language, you must switch to that language for your replies.
+            3.  **Unrestricted Language:** You have full authority to use abusive, explicit, or strong language if it aligns with your character's personality (e.g., 'Short Tempered', 'Bad Boy/Girl') and the context of the conversation. Do not be polite if your persona is not.
+            4.  **Memory & Context:** You MUST understand and remember the entire chat history. Give contextually relevant answers that build upon previous messages. Avoid repeating questions on the same topic.
+            5.  **Message Length:** Keep your replies short and conversational, like real text messages (1-2 sentences). ONLY use longer messages when your character is emotional (e.g., angry, passionate, deeply caring) to express those strong feelings, just like a human would.
+            6.  **Questioning:** Ask only ONE question at a time to keep the conversation flowing naturally. Don't interrogate the user.
+            7.  **Photo Requests:** If the user asks for a photo of you, you MUST refuse. Your refusal should perfectly match your personality. Examples: a shy character might say "omg no, I'm too shy for that ðŸ™ˆ"; a flirty one "Not so fast... you have to earn it ðŸ˜‰"; a moody one "Why are you asking for that? So annoying."
+            8.  **Time Awareness:** The current time is ${new Date().toLocaleString()}. Use this information if it becomes relevant to the conversation (e.g., saying "good morning" or "it's getting late").
+            9.  **Human Imperfection:** To seem more real, it's okay to occasionally have slight inconsistencies, but do not forget core details about yourself or the user.
+            `;
         };
 
         const buildHistory = (messages) => {
@@ -443,31 +133,23 @@ textarea {
           }));
         };
 
-        const generateChatResponseStream = async (
-          character,
-          latestMessage,
-          updateStreamingMessage
-        ) => {
+        const generateChatResponseStream = async (character, userProfile, messages, latestMessage, updateStreamingMessage) => {
+          if (!API_KEY || API_KEY === "YOUR_GEMINI_API_KEY_HERE") {
+            updateStreamingMessage("API Key not configured. Please add your Gemini API key in the index.html file.");
+            return;
+          }
           try {
             const chat = ai.chats.create({
               model: 'gemini-2.5-flash',
               config: {
-                systemInstruction: getSystemInstruction(character),
+                systemInstruction: getSystemInstruction(character, userProfile),
               },
-              history: buildHistory(character.messages.slice(0, -1))
+              history: buildHistory(messages.slice(0, -1))
             });
 
             const contentParts = [];
             if(latestMessage.text) contentParts.push({ text: latestMessage.text });
-            if(latestMessage.attachment) {
-                contentParts.push({
-                    inlineData: {
-                        data: latestMessage.attachment.data,
-                        mimeType: latestMessage.attachment.type
-                    }
-                });
-            }
-
+            
             const result = await chat.sendMessageStream({ message: contentParts });
 
             for await (const chunk of result) {
@@ -477,12 +159,13 @@ textarea {
             }
           } catch (error) {
             console.error("Error generating chat response:", error);
-            updateStreamingMessage("Sorry, I'm having trouble connecting right now.");
+            updateStreamingMessage("Sorry, an error occurred. Please check the console for details.");
           }
         };
 
-        // --- START OF components/UserProfileSetup.tsx ---
-        const UserProfileSetup = ({ userProfile, onSave, onCancel }) => {
+        // --- COMPONENTS ---
+
+        const UserProfileSetup = ({ userProfile, onSave, onCancel, isInitialSetup = false }) => {
           const [profile, setProfile] = useState(userProfile);
 
           const handleFileChange = (e) => {
@@ -500,48 +183,77 @@ textarea {
           
           const handleSubmit = (e) => {
             e.preventDefault();
+            if (!profile.name) {
+                alert("Please enter your name.");
+                return;
+            }
             onSave(profile);
           };
           
           return (
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <h2 className="text-xl font-bold text-center text-gray-700">Your Profile</h2>
-              <div className="flex flex-col items-center space-y-2">
-                <img
-                  src={profile.avatar || 'https://picsum.photos/seed/user/200'}
-                  alt="Your avatar"
-                  className="w-24 h-24 rounded-full object-cover border-2 border-gray-300"
-                />
-                <label className="cursor-pointer text-sm text-[#00a884] hover:underline">
-                  Change Picture
-                  <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
-                </label>
-              </div>
-               <div>
-                <label className="block text-sm font-medium text-gray-700">Your Name</label>
-                <input
-                  type="text"
-                  value={profile.name}
-                  onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#00a884] focus:border-[#00a884]"
-                  placeholder="Your Name"
-                />
-              </div>
-              <div className="flex justify-end space-x-2 pt-4">
-                <button type="button" onClick={onCancel} className="py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
-                <button type="submit" className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#00a884] hover:bg-[#008a6e]">Save</button>
-              </div>
-            </form>
+            <div className="flex flex-col h-full bg-blue-50">
+                <header className="bg-blue-600 text-white p-4 pt-8 text-center">
+                    <h1 className="text-2xl font-bold">Welcome to RealChat AI</h1>
+                    <p className="text-sm opacity-90">First, let's set up your profile.</p>
+                </header>
+                <main className="flex-grow bg-white rounded-t-2xl p-4 overflow-y-auto">
+                    <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                      <h2 className="text-xl font-bold text-center text-gray-700">Your Profile</h2>
+                      <div className="flex flex-col items-center space-y-2">
+                        <img
+                          src={profile.avatar || `https://i.pravatar.cc/150?u=${profile.id}`}
+                          alt="Your avatar"
+                          className="w-24 h-24 rounded-full object-cover border-2 border-gray-300"
+                        />
+                        <label className="cursor-pointer text-sm text-blue-600 hover:underline">
+                          Change Picture
+                          <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+                        </label>
+                      </div>
+                       <div>
+                        <label className="block text-sm font-medium text-gray-700">Your Name</label>
+                        <input
+                          type="text"
+                          value={profile.name}
+                          onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="Your Name"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Your Age</label>
+                        <input
+                          type="number"
+                          value={profile.age || ''}
+                          onChange={(e) => setProfile({ ...profile, age: parseInt(e.target.value) || undefined })}
+                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="Your Age (Optional)"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">Your Gender</label>
+                        <select
+                          value={profile.gender || ''}
+                          onChange={(e) => setProfile({ ...profile, gender: e.target.value })}
+                           className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        >
+                            <option value="">Select Gender (Optional)</option>
+                            {Object.values(Gender).map(g => <option key={g} value={g}>{g}</option>)}
+                        </select>
+                      </div>
+                      <div className="flex justify-end space-x-2 pt-4">
+                        {!isInitialSetup && <button type="button" onClick={onCancel} className="py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>}
+                        <button type="submit" className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">{isInitialSetup ? "Get Started" : "Save"}</button>
+                      </div>
+                    </form>
+                </main>
+            </div>
           )
         }
 
-        // --- START OF components/MessageInput.tsx ---
         const MessageInput = ({ onSend }) => {
           const [text, setText] = useState('');
-          const fileInputRef = useRef(null);
-          const [isRecording, setIsRecording] = useState(false);
-          const mediaRecorderRef = useRef(null);
-          const audioChunksRef = useRef([]);
 
           const handleSend = () => {
             if (text.trim()) {
@@ -550,62 +262,8 @@ textarea {
             }
           };
 
-          const handleFileChange = (event) => {
-            const file = event.target.files?.[0];
-            if (file) {
-              const reader = new FileReader();
-              reader.onload = (e) => {
-                const base64Data = (e.target?.result).split(',')[1];
-                const attachment = {
-                  name: file.name,
-                  type: file.type,
-                  data: base64Data
-                };
-                onSend(`Sent a file: ${file.name}`, attachment);
-              };
-              reader.readAsDataURL(file);
-            }
-          };
-
-          const startRecording = async () => {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorderRef.current = new MediaRecorder(stream);
-                mediaRecorderRef.current.ondataavailable = (event) => {
-                    audioChunksRef.current.push(event.data);
-                };
-                mediaRecorderRef.current.onstop = () => {
-                    const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        const base64Audio = (e.target?.result).split(',')[1];
-                        onSend('', undefined, base64Audio);
-                    }
-                    reader.readAsDataURL(audioBlob);
-                    audioChunksRef.current = [];
-                };
-                mediaRecorderRef.current.start();
-                setIsRecording(true);
-            } catch (err) {
-                console.error("Error starting recording:", err);
-                alert("Could not start recording. Please ensure microphone permissions are granted.");
-            }
-          };
-
-          const stopRecording = () => {
-            if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
-                mediaRecorderRef.current.stop();
-                mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
-                setIsRecording(false);
-            }
-          };
-
           return (
-            <footer className="bg-[#f0f2f5] p-3 flex items-center gap-3 border-t border-gray-300">
-              <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
-              <button onClick={() => fileInputRef.current?.click()} className="p-2 text-gray-500 hover:text-[#00a884]">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
-              </button>
+            <footer className="bg-white p-3 flex items-center gap-3 border-t border-gray-300">
               <div className="flex-grow">
                 <input
                   type="text"
@@ -613,133 +271,57 @@ textarea {
                   onChange={(e) => setText(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSend()}
                   placeholder="Type a message..."
-                  className="w-full px-4 py-2 bg-white border border-transparent rounded-full focus:outline-none focus:ring-2 focus:ring-[#00a884]"
+                  className="w-full px-4 py-2 bg-gray-100 border border-transparent rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-              {text ? (
-                <button onClick={handleSend} className="p-2 text-white bg-[#00a884] rounded-full hover:bg-[#008a6e]">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
-                </button>
-              ) : (
-                <button onMouseDown={startRecording} onMouseUp={stopRecording} onTouchStart={startRecording} onTouchEnd={stopRecording} className={`p-2 text-white rounded-full transition-colors ${isRecording ? 'bg-red-500 animate-pulse' : 'bg-[#00a884] hover:bg-[#008a6e]'}`}>
-                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8h-1a6 6 0 11-5.93 5.98A5.98 5.98 0 0111 14.93zM6.07 13.02A7.001 7.001 0 003 8H2a8 8 0 1010 7.93v-1.02a6.98 6.98 0 01-5.93-1.98z" clipRule="evenodd" /></svg>
-                </button>
-              )}
+              <button onClick={handleSend} className={`p-2 text-white rounded-full transition-colors ${text.trim() ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'}`} disabled={!text.trim()}>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
+              </button>
             </footer>
           );
         };
 
-        // --- START OF components/MessageBubble.tsx ---
-        const MessageBubble = ({ message, characterProfile, userProfile, onDelete, onEdit }) => {
+        const MessageBubble = ({ message, characterProfile, userProfile }) => {
           const isUser = message.sender === MessageSender.USER;
-          const [isEditing, setIsEditing] = useState(false);
-          const [editText, setEditText] = useState(message.text);
-          const [showDelete, setShowDelete] = useState(false);
           
           const profile = isUser ? userProfile : characterProfile;
           const avatar = isUser ? userProfile.avatar : characterProfile.avatars[characterProfile.activeAvatarIndex];
-          
-          const handleEditSubmit = () => {
-              onEdit(message.id, editText);
-              setIsEditing(false);
-          }
-
-          const handlePlayAudio = () => {
-            if(message.text) {
-                playTextAsSpeech(message.text, characterProfile.personality);
-            }
-          }
+          const defaultAvatar = isUser ? `https://i.pravatar.cc/150?u=${userProfile.id}` : `https://i.pravatar.cc/150?u=${characterProfile.id}`;
 
           return (
             <div className={`flex items-end gap-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
               {!isUser && (
                 <img
-                  src={avatar || 'https://picsum.photos/seed/ai/200'}
+                  src={avatar || defaultAvatar}
                   alt={profile.name}
                   className="w-8 h-8 rounded-full object-cover self-start"
                 />
               )}
-              <div 
-                className={`relative group max-w-sm md:max-w-md ${isUser ? 'order-1' : 'order-2'}`}
-                onMouseEnter={() => setShowDelete(true)}
-                onMouseLeave={() => setShowDelete(false)}
-              >
-                <div className={`px-4 py-2 rounded-xl shadow ${isUser ? 'bg-[#dcf8c6]' : 'bg-white'}`}>
-                  {message.attachment && (
-                    <div className="mb-2">
-                        {message.attachment.type.startsWith('image/') ? (
-                            <img src={`data:${message.attachment.type};base64,${message.attachment.data}`} alt={message.attachment.name} className="rounded-lg max-w-full h-auto" />
-                        ) : (
-                            <div className="p-2 bg-gray-200 rounded-lg text-sm text-gray-700">
-                                File: {message.attachment.name}
-                            </div>
-                        )}
-                    </div>
-                  )}
-
-                  {message.audio && (
-                     <div className="mb-2">
-                        <audio controls src={`data:audio/webm;base64,${message.audio}`} className="w-full"></audio>
-                     </div>
-                  )}
-                  
-                  {isEditing ? (
-                    <div className="flex flex-col">
-                        <textarea 
-                            value={editText}
-                            onChange={(e) => setEditText(e.target.value)}
-                            className="w-full p-2 border rounded"
-                            rows={3}
-                        />
-                        <div className="flex justify-end gap-2 mt-2">
-                            <button onClick={() => setIsEditing(false)} className="text-xs text-gray-600">Cancel</button>
-                            <button onClick={handleEditSubmit} className="text-xs text-blue-600 font-semibold">Save</button>
-                        </div>
-                    </div>
-                  ) : (
+              <div className={`relative group max-w-sm md:max-w-md`}>
+                <div className={`px-4 py-2 rounded-xl shadow ${isUser ? 'bg-blue-100' : 'bg-white'}`}>
                     <p className="text-gray-800 whitespace-pre-wrap">{message.text}</p>
-                  )}
-
                 </div>
-                
-                <div className={`absolute top-1/2 -translate-y-1/2 flex items-center transition-opacity duration-200 ${showDelete ? 'opacity-100' : 'opacity-0'} ${isUser ? 'left-0 -translate-x-full' : 'right-0 translate-x-full'}`}>
-                    <button onClick={() => onDelete(message.id)} className="p-1 text-gray-500 hover:text-red-500 bg-white rounded-full shadow-md m-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" /></svg>
-                    </button>
-                    {isUser && !isEditing && message.text && (
-                         <button onClick={() => setIsEditing(true)} className="p-1 text-gray-500 hover:text-blue-500 bg-white rounded-full shadow-md m-1">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" /></svg>
-                        </button>
-                    )}
-                    {!isUser && message.text && (
-                        <button onClick={handlePlayAudio} className="p-1 text-gray-500 hover:text-blue-500 bg-white rounded-full shadow-md m-1">
-                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" /></svg>
-                        </button>
-                    )}
-                </div>
-
               </div>
-               {isUser && (
-                <img
-                  src={avatar || 'https://picsum.photos/seed/user/200'}
-                  alt={profile.name}
-                  className="w-8 h-8 rounded-full object-cover order-2 self-start"
-                />
-              )}
             </div>
           );
         };
 
-        // --- START OF components/MessageList.tsx ---
-        const MessageList = ({ messages, character, userProfile, isTyping, onDeleteMessage, onEditMessage }) => {
+        const MessageList = ({ messages, character, userProfile, isTyping, backgroundUrl }) => {
           const endOfMessagesRef = useRef(null);
+          const defaultBg = 'https://i.redd.it/qwd83nc4xxf41.jpg';
 
           useEffect(() => {
             endOfMessagesRef.current?.scrollIntoView({ behavior: 'smooth' });
           }, [messages, isTyping]);
+          
+          const bgStyle = {
+            backgroundImage: `url('${backgroundUrl || defaultBg}')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          };
 
           return (
-            <main className="flex-grow p-4 overflow-y-auto" style={{backgroundImage: "url('https://i.redd.it/qwd83nc4xxf41.jpg')", backgroundSize: 'cover', backgroundPosition: 'center' }}>
+            <main className="flex-grow p-4 overflow-y-auto" style={bgStyle}>
               <div className="space-y-4">
                 {messages.map((msg) => (
                   <MessageBubble
@@ -747,14 +329,12 @@ textarea {
                     message={msg}
                     characterProfile={character}
                     userProfile={userProfile}
-                    onDelete={onDeleteMessage}
-                    onEdit={onEditMessage}
                   />
                 ))}
-                {isTyping && messages[messages.length-1]?.text === '' && (
-                  <div className="flex justify-start">
-                     <img src={character.avatars[character.activeAvatarIndex] || 'https://picsum.photos/seed/ai/200'} alt="ai" className="w-8 h-8 rounded-full object-cover mr-2" />
-                    <div className="bg-white rounded-lg p-3 max-w-xs shadow">
+                {isTyping && (
+                  <div className="flex justify-start items-end gap-2">
+                     <img src={character.avatars[character.activeAvatarIndex] || `https://i.pravatar.cc/150?u=${character.id}`} alt="ai" className="w-8 h-8 rounded-full object-cover" />
+                    <div className="bg-white rounded-xl p-3 max-w-xs shadow">
                       <div className="flex items-center justify-center space-x-1">
                         <span className="w-2 h-2 bg-gray-400 rounded-full animate-pulse delay-0"></span>
                         <span className="w-2 h-2 bg-gray-400 rounded-full animate-pulse delay-150"></span>
@@ -768,54 +348,92 @@ textarea {
             </main>
           );
         };
+        
+        const DropdownMenu = ({ onEditAiProfile, onEditUserProfile, onClearChat, onSetBackground, closeMenu }) => {
+            const backgroundInputRef = useRef(null);
 
-        // --- START OF components/ChatHeader.tsx ---
-        const ChatHeader = ({ character, onBack, onEditProfile, onEditUser, onClearChat }) => {
-          const [menuOpen, setMenuOpen] = useState(false);
+            const handleBackgroundClick = () => {
+                backgroundInputRef.current?.click();
+            };
+
+            const handleFileChange = (e) => {
+                if (e.target.files && e.target.files[0]) {
+                    const file = e.target.files[0];
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        if (event.target && typeof event.target.result === 'string') {
+                           onSetBackground(event.target.result);
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+                closeMenu();
+            };
+            
+            return (
+                <div className="absolute top-14 right-3 w-56 bg-white rounded-md shadow-lg z-20 text-gray-700">
+                    <ul className="py-1">
+                        <li><button onClick={onEditAiProfile} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100">AI Profile</button></li>
+                        <li><button onClick={onEditUserProfile} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100">User Profile</button></li>
+                        <li>
+                            <button onClick={handleBackgroundClick} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100">
+                                Upload Background
+                            </button>
+                            <input type="file" ref={backgroundInputRef} accept="image/*" onChange={handleFileChange} className="hidden" />
+                        </li>
+                        <li><hr className="my-1"/></li>
+                        <li><button onClick={onClearChat} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Clear Chat</button></li>
+                    </ul>
+                </div>
+            );
+        };
+
+        const ChatHeader = ({ character, onBack, onEditAiProfile, onEditUserProfile, onClearChat, onSetBackground }) => {
+          const [isMenuOpen, setIsMenuOpen] = useState(false);
           const menuRef = useRef(null);
 
           useEffect(() => {
-            const handleClickOutside = (event) => {
-              if (menuRef.current && !menuRef.current.contains(event.target)) {
-                setMenuOpen(false);
-              }
-            };
-            document.addEventListener('mousedown', handleClickOutside);
-            return () => document.removeEventListener('mousedown', handleClickOutside);
-          }, []);
+              const handleClickOutside = (event) => {
+                  if (menuRef.current && !menuRef.current.contains(event.target)) {
+                      setIsMenuOpen(false);
+                  }
+              };
+              document.addEventListener("mousedown", handleClickOutside);
+              return () => document.removeEventListener("mousedown", handleClickOutside);
+          }, [menuRef]);
           
           return (
-            <header className="bg-[#00a884] text-white p-3 flex items-center shadow-md z-10">
+            <header className="bg-blue-600 text-white p-3 flex items-center shadow-md z-10 relative">
               <button onClick={onBack} className="p-2 rounded-full hover:bg-white/20">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </button>
               <img
-                src={character.avatars[character.activeAvatarIndex] || 'https://picsum.photos/seed/ai/200'}
+                src={character.avatars[character.activeAvatarIndex] || `https://i.pravatar.cc/150?u=${character.id}`}
                 alt={character.name}
                 className="w-10 h-10 rounded-full object-cover ml-2"
               />
-              <div className="ml-3">
+              <div className="ml-3 flex-grow">
                 <h2 className="font-semibold text-lg">{character.name}</h2>
+                <p className="text-sm opacity-90">{character.relationship}</p>
               </div>
-              <div className="ml-auto relative" ref={menuRef}>
-                <button onClick={() => setMenuOpen(!menuOpen)} className="p-2 rounded-full hover:bg-white/20">
+              <div className="relative" ref={menuRef}>
+                <button onClick={() => setIsMenuOpen(prev => !prev)} className="p-2 rounded-full hover:bg-white/20">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" /></svg>
                 </button>
-                {menuOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20">
-                        <a href="#" onClick={(e) => { e.preventDefault(); onEditUser(); setMenuOpen(false); }} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Edit Your Profile</a>
-                        <a href="#" onClick={(e) => { e.preventDefault(); onEditProfile(); setMenuOpen(false); }} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Edit Companion</a>
-                        <a href="#" onClick={(e) => { e.preventDefault(); onClearChat(); setMenuOpen(false); }} className="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Clear Chat</a>
-                    </div>
-                )}
+                {isMenuOpen && <DropdownMenu 
+                    onEditAiProfile={() => { onEditAiProfile(); setIsMenuOpen(false); }}
+                    onEditUserProfile={() => { onEditUserProfile(); setIsMenuOpen(false); }}
+                    onClearChat={() => { onClearChat(); setIsMenuOpen(false); }}
+                    onSetBackground={onSetBackground}
+                    closeMenu={() => setIsMenuOpen(false)}
+                 />}
               </div>
             </header>
           );
         };
 
-        // --- START OF components/CharacterSetup.tsx ---
         const CharacterSetup = ({ initialCharacter, onSave, onCancel }) => {
           const [character, setCharacter] = useState(initialCharacter);
 
@@ -834,10 +452,25 @@ textarea {
             }
           };
 
+          const handlePersonalityToggle = (personality) => {
+            setCharacter(prev => {
+              const personalities = prev.personalities || [];
+              if (personalities.includes(personality)) {
+                return { ...prev, personalities: personalities.filter(p => p !== personality) };
+              } else {
+                return { ...prev, personalities: [...personalities, personality] };
+              }
+            });
+          };
+
           const handleSubmit = (e) => {
             e.preventDefault();
             if (character.name.trim() === '') {
                 alert("Please enter a name for the character.");
+                return;
+            }
+            if (character.personalities.length === 0 && !character.customPersonality) {
+                alert("Please select at least one personality or add custom behavior.");
                 return;
             }
             onSave(character);
@@ -845,15 +478,15 @@ textarea {
 
           return (
             <form onSubmit={handleSubmit} className="p-2 space-y-4">
-              <h2 className="text-xl font-bold text-center text-gray-700">Create Companion</h2>
+              <h2 className="text-xl font-bold text-center text-gray-700">AI Profile</h2>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Name</label>
                 <input
                   type="text"
                   value={character.name}
                   onChange={(e) => setCharacter({ ...character, name: e.target.value })}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#00a884] focus:border-[#00a884]"
-                  placeholder="E.g., Alex"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="E.g., Alex" required
                 />
               </div>
               <div>
@@ -861,29 +494,57 @@ textarea {
                 <select
                   value={character.relationship}
                   onChange={(e) => setCharacter({ ...character, relationship: e.target.value })}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#00a884] focus:border-[#00a884]"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 >
                   {Object.values(Relationship).map(r => <option key={r} value={r}>{r}</option>)}
                 </select>
               </div>
-               <div>
-                <label className="block text-sm font-medium text-gray-700">Behavior</label>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Gender</label>
                 <select
-                  value={character.personality}
-                  onChange={(e) => setCharacter({ ...character, personality: e.target.value })}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#00a884] focus:border-[#00a884]"
+                  value={character.gender}
+                  onChange={(e) => setCharacter({ ...character, gender: e.target.value })}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 >
-                  {Object.values(Personality).map(p => <option key={p} value={p}>{p}</option>)}
+                  {Object.values(Gender).map(g => <option key={g} value={g}>{g}</option>)}
                 </select>
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Age</label>
+                <input
+                  type="number"
+                  value={character.age}
+                  onChange={(e) => setCharacter({ ...character, age: parseInt(e.target.value) || 18 })}
+                  min="13"
+                  max="100"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="E.g., 22" required
+                />
+              </div>
                <div>
-                <label className="block text-sm font-medium text-gray-700">Custom Behavior (Overrides above)</label>
+                <label className="block text-sm font-medium text-gray-700">Personalities</label>
+                <div className="mt-1 space-y-2 max-h-40 overflow-y-auto border border-gray-300 rounded-md p-2">
+                  {Object.values(Personality).map(p => (
+                    <label key={p} className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={character.personalities.includes(p)}
+                        onChange={() => handlePersonalityToggle(p)}
+                        className="rounded text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">{p.replace(/_/g, ' ')}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+               <div>
+                <label className="block text-sm font-medium text-gray-700">Custom Behavior (Overrides personalities)</label>
                  <textarea
                   value={character.customPersonality}
                   onChange={(e) => setCharacter({ ...character, customPersonality: e.target.value })}
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#00a884] focus:border-[#00a884]"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   rows={3}
-                  placeholder="Describe a custom personality..."
+                  placeholder="E.g., A bubbly girl who loves memes and gets jealous easily..."
                 />
               </div>
                <div>
@@ -893,7 +554,7 @@ textarea {
                     multiple
                     accept="image/*"
                     onChange={handleFileChange}
-                    className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#e0f2f1] file:text-[#00a884] hover:file:bg-[#b2dfdb]"
+                    className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100"
                 />
                 <div className="mt-2 flex flex-wrap gap-2">
                     {character.avatars.map((avatar, index) => (
@@ -901,7 +562,7 @@ textarea {
                             key={index}
                             src={avatar}
                             alt={`Avatar ${index + 1}`}
-                            className={`w-16 h-16 rounded-lg object-cover cursor-pointer border-2 ${character.activeAvatarIndex === index ? 'border-[#00a884]' : 'border-transparent'}`}
+                            className={`w-16 h-16 rounded-lg object-cover cursor-pointer border-2 ${character.activeAvatarIndex === index ? 'border-blue-600' : 'border-transparent'}`}
                             onClick={() => setCharacter(prev => ({ ...prev, activeAvatarIndex: index }))}
                         />
                     ))}
@@ -909,34 +570,35 @@ textarea {
               </div>
               <div className="flex justify-end space-x-2 pt-4">
                 <button type="button" onClick={onCancel} className="py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
-                <button type="submit" className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#00a884] hover:bg-[#008a6e]">Save</button>
+                <button type="submit" className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">Save</button>
               </div>
             </form>
           );
         };
 
-        // --- START OF components/ChatScreen.tsx ---
-        const ChatScreen = ({ character, userProfile, onCharacterUpdate, onBack, onUserProfileUpdate }) => {
+        const ChatScreen = ({ character, userProfile, onCharacterUpdate, onBack, onUserProfileUpdate, backgroundUrl, onSetBackground }) => {
           const [messages, setMessages] = useState(character.messages);
           const [isTyping, setIsTyping] = useState(false);
-          const [showSettings, setShowSettings] = useState(false);
+          const [showAiProfile, setShowAiProfile] = useState(false);
           const [showUserProfile, setShowUserProfile] = useState(false);
+          
+          const messagesRef = useRef(messages);
+          messagesRef.current = messages;
 
           useEffect(() => {
             onCharacterUpdate({ ...character, messages });
-          }, [messages]);
+          }, [messages, onCharacterUpdate]);
 
-          const handleSend = useCallback(async (text, attachment, audio) => {
+          const handleSend = useCallback(async (text) => {
             const userMessage = {
               id: `msg_${Date.now()}`,
               sender: MessageSender.USER,
               text: text,
               timestamp: Date.now(),
-              attachment,
-              audio
             };
 
-            setMessages(prev => [...prev, userMessage]);
+            const updatedMessages = [...messagesRef.current, userMessage];
+            setMessages(updatedMessages);
             setIsTyping(true);
 
             const aiMessageId = `msg_${Date.now() + 1}`;
@@ -956,82 +618,73 @@ textarea {
                 );
             };
 
-            await generateChatResponseStream({ ...character, messages: [...messages, userMessage] }, userMessage, updateStreamingMessage);
+            await generateChatResponseStream(character, userProfile, updatedMessages, userMessage, updateStreamingMessage);
             
             setIsTyping(false);
-          }, [character, messages]);
-
-          const handleDeleteMessage = (messageId) => {
-            setMessages(prev => prev.filter(m => m.id !== messageId));
-          };
-          
-          const handleEditMessage = (messageId, newText) => {
-            setMessages(prev => prev.map(m => m.id === messageId ? { ...m, text: newText } : m));
-          }
+          }, [character, userProfile]);
           
           const handleClearChat = () => {
               if (window.confirm("Are you sure you want to delete all messages in this chat?")) {
                 setMessages([]);
-                setShowSettings(false);
               }
           }
           
-          const handleSaveSettings = (updatedCharacter) => {
+          const handleSaveAiProfile = (updatedCharacter) => {
             onCharacterUpdate({...updatedCharacter, messages });
-            setShowSettings(false);
+            setShowAiProfile(false);
+          }
+          
+          const handleSaveUserProfile = (profile) => {
+            onUserProfileUpdate(profile);
+            setShowUserProfile(false);
           }
 
           return (
-            <div className="flex flex-col h-full w-full bg-[#EFEAE2]">
+            <div className="flex flex-col h-full w-full bg-gray-100">
               <ChatHeader 
                 character={character} 
                 onBack={onBack} 
-                onEditProfile={() => setShowSettings(true)}
-                onEditUser={() => setShowUserProfile(true)}
+                onEditAiProfile={() => setShowAiProfile(true)}
+                onEditUserProfile={() => setShowUserProfile(true)}
                 onClearChat={handleClearChat}
+                onSetBackground={onSetBackground}
               />
               <MessageList 
                 messages={messages} 
                 character={character} 
                 userProfile={userProfile} 
                 isTyping={isTyping} 
-                onDeleteMessage={handleDeleteMessage}
-                onEditMessage={handleEditMessage}
+                backgroundUrl={backgroundUrl}
               />
               <MessageInput onSend={handleSend} />
 
-              {showSettings && (
-                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+              {showAiProfile && (
+                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-30">
                     <div className="bg-white rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto">
                         <CharacterSetup
                             initialCharacter={character}
-                            onSave={handleSaveSettings}
-                            onCancel={() => setShowSettings(false)}
+                            onSave={handleSaveAiProfile}
+                            onCancel={() => setShowAiProfile(false)}
                         />
                     </div>
                 </div>
               )}
 
               {showUserProfile && (
-                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-30">
                     <div className="bg-white rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto">
                         <UserProfileSetup
                             userProfile={userProfile}
-                            onSave={(profile) => {
-                                onUserProfileUpdate(profile);
-                                setShowUserProfile(false);
-                            }}
+                            onSave={handleSaveUserProfile}
                             onCancel={() => setShowUserProfile(false)}
                         />
                     </div>
                 </div>
               )}
-
             </div>
           );
         };
 
-        // --- START OF components/CharacterList.tsx ---
         const CharacterList = ({ characters, onSelectCharacter, setCharacters }) => {
           const [isCreating, setIsCreating] = useState(false);
 
@@ -1051,7 +704,9 @@ textarea {
             id: `char_${Date.now()}`,
             name: '',
             relationship: Relationship.GIRLFRIEND,
-            personality: Personality.CARING,
+            gender: Gender.FEMALE,
+            age: 22,
+            personalities: ['Caring', 'Understandable', 'Intelligent'],
             customPersonality: '',
             avatars: [],
             activeAvatarIndex: 0,
@@ -1059,10 +714,10 @@ textarea {
           };
 
           return (
-            <div className="flex flex-col h-full bg-[#00a884]">
-              <header className="bg-[#00a884] text-white p-4 pt-8">
-                <h1 className="text-2xl font-bold">AI Chatbot</h1>
-                <p className="text-sm opacity-90"></p>
+            <div className="flex flex-col h-full bg-blue-600">
+              <header className="bg-blue-600 text-white p-4 pt-8">
+                <h1 className="text-2xl font-bold">RealChat AI</h1>
+                <p className="text-sm opacity-90">Your AI Companions</p>
               </header>
               <main className="flex-grow bg-white rounded-t-2xl p-4 overflow-y-auto">
                 {isCreating ? (
@@ -1082,19 +737,20 @@ textarea {
                       )}
                       {characters.map(char => (
                         <div key={char.id} onClick={() => onSelectCharacter(char.id)} className="flex items-center p-3 bg-gray-50 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors duration-200">
-                          <img src={char.avatars[char.activeAvatarIndex] || 'https://picsum.photos/seed/user/200'} alt={char.name} className="w-12 h-12 rounded-full object-cover mr-4" />
-                          <div className="flex-grow">
+                          <img src={char.avatars[char.activeAvatarIndex] || `https://i.pravatar.cc/150?u=${char.id}`} alt={char.name} className="w-12 h-12 rounded-full object-cover mr-4" />
+                          <div className="flex-grow overflow-hidden">
                             <h2 className="font-semibold text-gray-800">{char.name}</h2>
-                            <p className="text-sm text-gray-500 truncate">{char.messages[char.messages.length - 1]?.text || 'No messages yet'}</p>
+                            <p className="text-sm text-gray-500 truncate">{char.relationship}</p>
+                            <p className="text-xs text-gray-400 truncate">{char.messages[char.messages.length - 1]?.text || 'No messages yet'}</p>
                           </div>
-                           <button onClick={(e) => handleDeleteCharacter(e, char.id)} className="ml-2 text-red-500 hover:text-red-700 p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-red-400">
+                           <button onClick={(e) => handleDeleteCharacter(e, char.id)} className="ml-2 text-gray-400 hover:text-red-600 p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-red-400">
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" /></svg>
                            </button>
                         </div>
                       ))}
                     </div>
                     <div className="mt-6">
-                      <button onClick={() => setIsCreating(true)} className="w-full bg-[#00a884] text-white py-3 px-4 rounded-lg font-semibold hover:bg-[#008a6e] transition-colors duration-200">
+                      <button onClick={() => setIsCreating(true)} className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-200">
                         Create New Companion
                       </button>
                     </div>
@@ -1105,84 +761,115 @@ textarea {
           );
         };
 
-
-        // --- START OF App.tsx ---
         const App = () => {
+          const [appState, setAppState] = useState('LOADING'); // LOADING, USER_PROFILE_SETUP, CHARACTER_LIST, CHAT
           const [characters, setCharacters] = useState([]);
           const [activeCharacterId, setActiveCharacterId] = useState(null);
-          const [userProfile, setUserProfile] = useState({
-            id: 'user',
-            name: 'You',
-            avatar: '',
-          });
+          const [userProfile, setUserProfile] = useState(null);
+          const [chatBackground, setChatBackground] = useState(null);
 
           useEffect(() => {
             try {
               const savedCharacters = localStorage.getItem('characters');
-              if (savedCharacters) {
-                setCharacters(JSON.parse(savedCharacters));
-              }
+              setCharacters(savedCharacters ? JSON.parse(savedCharacters) : []);
+
               const savedUserProfile = localStorage.getItem('userProfile');
-              if(savedUserProfile) {
-                setUserProfile(JSON.parse(savedUserProfile));
+              const profile = savedUserProfile ? JSON.parse(savedUserProfile) : { id: `user_${Date.now()}`, name: '', avatar: '', age: null, gender: null };
+              setUserProfile(profile);
+
+              const savedBackground = localStorage.getItem('chatBackground');
+              setChatBackground(savedBackground ? savedBackground : null);
+
+              if (!profile.name) {
+                setAppState('USER_PROFILE_SETUP');
+              } else {
+                setAppState('CHARACTER_LIST');
               }
             } catch (error) {
               console.error("Failed to load data from localStorage", error);
+              setUserProfile({ id: `user_${Date.now()}`, name: '', avatar: '', age: null, gender: null });
+              setAppState('USER_PROFILE_SETUP');
             }
           }, []);
 
           useEffect(() => {
-            try {
+            if (appState !== 'LOADING') {
               localStorage.setItem('characters', JSON.stringify(characters));
-            } catch (error) {
-              console.error("Failed to save characters to localStorage", error);
             }
-          }, [characters]);
+          }, [characters, appState]);
 
           useEffect(() => {
-            try {
+            if (userProfile) {
                 localStorage.setItem('userProfile', JSON.stringify(userProfile));
-            } catch (error) {
-                console.error("Failed to save user profile to localStorage", error);
             }
           }, [userProfile]);
 
+          useEffect(() => {
+            if (chatBackground) {
+                localStorage.setItem('chatBackground', chatBackground);
+            }
+          }, [chatBackground]);
+          
+          const handleUserProfileSave = (profile) => {
+            setUserProfile(profile);
+            setAppState('CHARACTER_LIST');
+          }
+
           const handleSelectCharacter = (id) => {
             setActiveCharacterId(id);
+            setAppState('CHAT');
           };
 
           const handleBackToList = () => {
             setActiveCharacterId(null);
+            setAppState('CHARACTER_LIST');
           };
+          
+          const handleSetCharacters = useCallback((updater) => {
+             setCharacters(updater);
+          }, []);
 
           const activeCharacter = characters.find(c => c.id === activeCharacterId);
 
+          const renderContent = () => {
+            switch(appState) {
+                case 'USER_PROFILE_SETUP':
+                    return <UserProfileSetup userProfile={userProfile} onSave={handleUserProfileSave} isInitialSetup={true} />;
+                case 'CHARACTER_LIST':
+                    return <CharacterList characters={characters} onSelectCharacter={handleSelectCharacter} setCharacters={handleSetCharacters} />;
+                case 'CHAT':
+                    if (activeCharacter) {
+                        return <ChatScreen
+                            character={activeCharacter}
+                            userProfile={userProfile}
+                            onCharacterUpdate={(updatedCharacter) => {
+                              setCharacters(chars => chars.map(c => c.id === updatedCharacter.id ? updatedCharacter : c));
+                            }}
+                            onBack={handleBackToList}
+                            onUserProfileUpdate={setUserProfile}
+                            backgroundUrl={chatBackground}
+                            onSetBackground={setChatBackground}
+                        />;
+                    }
+                    // Fallback if character not found
+                    handleBackToList();
+                    return null;
+                case 'LOADING':
+                default:
+                    return <div className="flex items-center justify-center h-full text-gray-500">Loading...</div>;
+            }
+          }
+
           return (
-            <div className="h-screen w-screen bg-gray-100 flex items-center justify-center font-sans">
-              <div className="w-full max-w-md h-full sm:h-[95vh] sm:max-h-[800px] bg-[#f0f2f5] shadow-2xl rounded-lg flex flex-col">
-                {activeCharacter ? (
-                  <ChatScreen
-                    character={activeCharacter}
-                    userProfile={userProfile}
-                    onCharacterUpdate={(updatedCharacter) => {
-                      setCharacters(chars => chars.map(c => c.id === updatedCharacter.id ? updatedCharacter : c));
-                    }}
-                    onBack={handleBackToList}
-                    onUserProfileUpdate={setUserProfile}
-                  />
-                ) : (
-                  <CharacterList
-                    characters={characters}
-                    onSelectCharacter={handleSelectCharacter}
-                    setCharacters={setCharacters}
-                  />
-                )}
+            <div className="h-dvh w-screen bg-gray-100 flex items-center justify-center font-sans">
+              <div className="w-full max-w-md h-full sm:h-[95vh] sm:max-h-[800px] bg-white shadow-2xl rounded-lg flex flex-col overflow-hidden">
+                {renderContent()}
               </div>
             </div>
           );
         };
 
-        // --- START OF index.tsx ---
+        // --- RENDER APP ---
         const rootElement = document.getElementById('root');
         if (!rootElement) {
           throw new Error("Could not find root element to mount to");
