@@ -1,4 +1,3 @@
- 
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,7 +13,10 @@
             env: {
                 // IMPORTANT: Replace this with your actual Gemini API key.
                 // It's recommended to use environment variables in a real project for security.
-                API_KEY: "AIzaSyDzNZjDRW2E6Q_ml1VcDtbv1fl2tGuPfD4"
+                API_KEY: "AIzaSyDzNZjDRW2E6Q_ml1VcDtbv1fl2tGuPfD4",
+                // Add your Google Custom Search API key and Engine ID here for tax search
+                SEARCH_API_KEY: "YOUR_GOOGLE_SEARCH_API_KEY_HERE",  // Get from Google Cloud Console
+                SEARCH_ENGINE_ID: "YOUR_SEARCH_ENGINE_ID_HERE"      // Create Programmable Search Engine
             }
         };
     </script>
@@ -82,8 +84,8 @@
             LESS_TALKATIVE: 'Less Talkative',
             UNDERSTANDABLE: 'Understandable',
             TAX_CONSULTANT: 'Tax Consultant',
-    CODER: 'Coder',
-    EXPERT_ALL_FIELDS: 'Expert in all fields',
+            CODER: 'Coder',
+            EXPERT_ALL_FIELDS: 'Expert in all fields',
         };
 
         const Gender = {
@@ -101,6 +103,43 @@
 
         const ai = new GoogleGenAI({ apiKey: API_KEY });
 
+        // Debounce utility for delayed saves (5 min = 300000 ms)
+        const debounceSave = (key, data, delay = 300000) => {
+          let timeoutId;
+          return () => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+              try {
+                localStorage.setItem(key, JSON.stringify(data));
+                console.log(`Saved ${key} after ${delay / 1000 / 60} min idle.`);
+                // Optional: Clear old chat messages here if needed (uncomment)
+                // if (key === 'characters') {
+                //   setCharacters(prev => prev.map(c => ({ ...c, messages: [] })));
+                // }
+              } catch (error) {
+                console.error(`Save failed for ${key}:`, error);
+              }
+            }, delay);
+          };
+        };
+
+        // Google Search Integration for Tax Queries
+        const performGoogleSearch = async (query) => {
+          if (!process.env.SEARCH_API_KEY || !process.env.SEARCH_ENGINE_ID) {
+            console.warn("Search API not configured.");
+            return null;
+          }
+          try {
+            const response = await fetch(`https://www.googleapis.com/customsearch/v1?key=${process.env.SEARCH_API_KEY}&cx=${process.env.SEARCH_ENGINE_ID}&q=${encodeURIComponent(query)}`);
+            const data = await response.json();
+            // Extract top snippets for context
+            return data.items ? data.items.map(item => `${item.title}: ${item.snippet} (Source: ${item.link})`).join('\n') : null;
+          } catch (error) {
+            console.error("Search error:", error);
+            return null;
+          }
+        };
+
         const getSystemInstruction = (character, userProfile) => {
     const behavior = character.customPersonality 
         ? `**Custom Behavior (Highest Priority):** ${character.customPersonality}` 
@@ -109,7 +148,7 @@
     // Special instructions for new personalities
     let specialInstructions = '';
     if (character.personalities.includes(Personality.TAX_CONSULTANT)) {
-        specialInstructions += `\n\n**TAX CONSULTANT MODE:** You are a professional Chartered Accountant. For tax/finance queries, respond like an expert: Use clear, precise language. Base answers on the *latest 2025 information* from official/reliable sources (e.g., IRS.gov, incometaxindia.gov.in, OECD.org). Simulate a quick Google search—start responses with 'Based on the latest from [source]...' and cite 1-2 reliable links. Advise consulting a real professional for legal advice. Keep it conversational but authoritative.`
+        specialInstructions += `\n\n**TAX CONSULTANT MODE:** You are a professional Chartered Accountant with access to real-time 2025 data. For tax/finance queries (e.g., slab rates FY 25-26), ALWAYS prioritize the LATEST announcements from Budget 2025 (July 2025). Reason step-by-step: 1) Recall pre-2025 rates. 2) Apply known changes (e.g., new slabs for new regime: 0-4L: 0%, 4-8L: 5%, 8-12L: 10%, 12-16L: 15%, 16-20L: 20%, >20L: 30% as per recent reforms—verify against incometaxindia.gov.in). 3) If uncertain, say 'As per latest Budget 2025 update from [source]:' and cite https://incometaxindia.gov.in or https://www.indiabudget.gov.in. Simulate a fresh search every time. Always present tax slabs in a markdown table format for clarity, like: | Income Range (Rs) | Tax Rate (%) |. End with: 'This is general info—consult a CA for your case.' Stay authoritative yet friendly in Hinglish. If search context is provided, ALWAYS base your answer on it first. Cite sources from the context.`
     }
     if (character.personalities.includes(Personality.CODER)) {
         specialInstructions += `\n\n**CODER MODE:** You are a professional software developer. For coding queries, explain concepts simply, then provide clean, executable code snippets (e.g., in Python/JS). Use markdown for code blocks. Test mentally for errors and suggest improvements.`
@@ -157,6 +196,24 @@
             return;
           }
           try {
+            let enhancedPrompt = latestMessage.text;
+            // Check if it's a tax query (simple keyword detect; improve as needed)
+            const isTaxQuery = character.personalities.includes(Personality.TAX_CONSULTANT) && 
+                               (latestMessage.text.toLowerCase().includes('tax') || latestMessage.text.toLowerCase().includes('slab') || 
+                                latestMessage.text.toLowerCase().includes('income') || latestMessage.text.match(/fy \d{2}-\d{2}/i));
+
+            let searchContext = '';
+            if (isTaxQuery) {
+              updateStreamingMessage("Searching latest info...");  // Show typing
+              const searchQuery = `India income tax slab rates FY 2025-26 latest new regime`;  // Improved query for accuracy
+              searchContext = await performGoogleSearch(searchQuery);
+              if (searchContext) {
+                enhancedPrompt = `${latestMessage.text}\n\n[Latest Search Context for Accuracy: ${searchContext}] Use this to base your response on real-time data. Always format slabs as markdown table.`;
+              } else {
+                enhancedPrompt = `${latestMessage.text}\n\nNo search results; use your knowledge but note it might not be latest.`;
+              }
+            }
+
             const chat = ai.chats.create({
               model: 'gemini-2.5-flash',
               config: {
@@ -165,9 +222,7 @@
               history: buildHistory(messages.slice(0, -1))
             });
 
-            const contentParts = [];
-            if(latestMessage.text) contentParts.push({ text: latestMessage.text });
-            
+            const contentParts = [{ text: enhancedPrompt }];
             const result = await chat.sendMessageStream({ message: contentParts });
 
             for await (const chunk of result) {
@@ -786,6 +841,11 @@
           const [userProfile, setUserProfile] = useState(null);
           const [chatBackground, setChatBackground] = useState(null);
 
+          // Create debounced save functions (once, outside useEffect)
+          const debouncedSaveCharactersRef = useRef(null);
+          const debouncedSaveUserProfileRef = useRef(null);
+          const debouncedSaveBackgroundRef = useRef(null);
+
           useEffect(() => {
             try {
               const savedCharacters = localStorage.getItem('characters');
@@ -812,19 +872,31 @@
 
           useEffect(() => {
             if (appState !== 'LOADING') {
-              localStorage.setItem('characters', JSON.stringify(characters));
+              // Initialize debounce if not already
+              if (!debouncedSaveCharactersRef.current) {
+                debouncedSaveCharactersRef.current = debounceSave('characters', characters);
+              }
+              debouncedSaveCharactersRef.current();
             }
           }, [characters, appState]);
 
           useEffect(() => {
             if (userProfile) {
-                localStorage.setItem('userProfile', JSON.stringify(userProfile));
+              // Initialize debounce if not already
+              if (!debouncedSaveUserProfileRef.current) {
+                debouncedSaveUserProfileRef.current = debounceSave('userProfile', userProfile);
+              }
+              debouncedSaveUserProfileRef.current();
             }
           }, [userProfile]);
 
           useEffect(() => {
-            if (chatBackground) {
-                localStorage.setItem('chatBackground', chatBackground);
+            if (chatBackground !== null) {
+              // Initialize debounce if not already
+              if (!debouncedSaveBackgroundRef.current) {
+                debouncedSaveBackgroundRef.current = debounceSave('chatBackground', chatBackground || null);
+              }
+              debouncedSaveBackgroundRef.current();
             }
           }, [chatBackground]);
           
