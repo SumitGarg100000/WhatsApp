@@ -1470,15 +1470,17 @@ Separate lines for multiple. Only include speaking characters. No extra text/nar
 
           // Debounced saving to localStorage
           useEffect(() => {
-            const saveUserProfile = debounceSave('userProfile', userProfile);
-            const saveCharacters = debounceSave('characters', characters);
-            const saveGroups = debounceSave('groups', groups);
-            const saveChatBackground = debounceSave('chatBackground', chatBackground);
-            saveUserProfile();
-            saveCharacters();
-            saveGroups();
-            saveChatBackground();
-          }, [userProfile, characters, groups, chatBackground]);
+    if (process.env.SAVE_TO_LOCAL_STORAGE === "yes") {
+        const saveUserProfile = debounceSave('userProfile', userProfile);
+        const saveCharacters = debounceSave('characters', characters);
+        const saveGroups = debounceSave('groups', groups);
+        const saveChatBackground = debounceSave('chatBackground', chatBackground);
+        saveUserProfile();
+        saveCharacters();
+        saveGroups();
+        saveChatBackground();
+    }
+}, [userProfile, characters, groups, chatBackground]);
 
           // Handle initial user profile setup
           if (!userProfile.name) {
