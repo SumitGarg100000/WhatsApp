@@ -19,7 +19,7 @@ const performGoogleSearch = async (query) => {
     return null;
   }
   try {
-    const response = await fetch(`https://www.googleapis.com/customsearch/v1?key=${SEARCH_API_KEY}&cx=${SEARCH_ENGINE_ID}&q=${encodeURIComponent(query)}`);
+  //  const response = await fetch(`https://www.googleapis.com/customsearch/v1?key=${SEARCH_API_KEY}&cx=${SEARCH_ENGINE_ID}&q=${encodeURIComponent(query)}`);
     const data = await response.json();
     return data.items ? data.items.map(item => `${item.title}: ${item.snippet} (Source: ${item.link})`).join('\n') : null;
   } catch (error) {
