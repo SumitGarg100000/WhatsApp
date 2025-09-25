@@ -1140,11 +1140,11 @@
                 }
             }
 
-            async handleImport(e) {
-                console.log("Import started...");
-                if (!e.target.files || !e.target.files[0]) return console.log("No file selected.");
-                
+                        async handleImport(e) {
+                alert("Import function shuru hua!"); // <-- YEH LINE ADD KAREIN
+                if (!e.target.files || !e.target.files[0]) return;
                 try {
+
                     const file = e.target.files[0];
                     const text = await file.text();
                     console.log("File read successfully.");
