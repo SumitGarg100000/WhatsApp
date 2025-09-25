@@ -1,13 +1,1192 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>RealChat AI Companion</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RealChat AI Companion</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for RealChat AI */
+        @keyframes pulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+        
+        .animate-pulse { animation: pulse 1.5s ease-in-out infinite; }
+        .delay-0 { animation-delay: 0ms; }
+        .delay-150 { animation-delay: 150ms; }
+        .delay-300 { animation-delay: 300ms; }
+        .transition-colors { transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out; }
+        
+        .message-bubble { animation: fadeInUp 0.3s ease-out; }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .character-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: all 0.2s ease;
+        }
+        
+        .personality-checkbox { accent-color: #3b82f6; }
+        
+        @media (max-width: 640px) {
+            .max-w-sm { max-width: 85%; }
+            .max-w-md { max-width: 85%; }
+        }
+    </style>
 </head>
-<body class="bg-gray-200">
-  <div id="root"></div>
-  <script type="module" src="/src/main.jsx"></script>
+<body class="bg-gray-200 h-screen">
+    <div id="root" class="h-full">
+        <div id="userProfileSetupScreen" class="flex flex-col h-full bg-blue-50 hidden">
+            <header class="bg-blue-600 text-white p-4 pt-8 text-center">
+                <h1 class="text-2xl font-bold">Welcome to RealChat AI</h1>
+                <p class="text-sm opacity-90">First, let's set up your profile.</p>
+            </header>
+            <main class="flex-grow bg-white rounded-t-2xl p-4 overflow-y-auto">
+                <form id="userProfileForm" class="p-6 space-y-4">
+                    <h2 class="text-xl font-bold text-center text-gray-700">Your Profile</h2>
+                    <div class="flex flex-col items-center space-y-2">
+                        <img id="userAvatarPreview" src="" alt="Your avatar" 
+                             class="w-24 h-24 rounded-full object-cover border-2 border-gray-300">
+                        <label class="cursor-pointer text-sm text-blue-600 hover:underline">
+                            Change Picture
+                            <input type="file" id="userAvatarInput" accept="image/*" class="hidden" />
+                        </label>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Your Name</label>
+                        <input type="text" id="userName" required
+                               class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="Your Name">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Your Age</label>
+                        <input type="number" id="userAge"
+                               class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="Your Age (Optional)">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Your Gender</label>
+                        <select id="userGender" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Select Gender (Optional)</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="flex justify-end space-x-2 pt-4">
+                        <button type="button" id="cancelUserProfile" class="py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 hidden">Cancel</button>
+                        <button type="submit" id="saveUserProfile" class="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">Get Started</button>
+                    </div>
+                </form>
+            </main>
+        </div>
+
+        <div id="characterListScreen" class="flex flex-col h-full bg-blue-50 hidden">
+            <header class="bg-blue-600 text-white p-4 pt-8 text-center">
+                <h1 class="text-2xl font-bold">RealChat AI</h1>
+                <p class="text-sm opacity-90">Chat with your AI companions!</p>
+            </header>
+            <main class="flex-grow bg-white rounded-t-2xl p-4 overflow-y-auto">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-gray-700">Chats</h2>
+                    <div class="flex gap-2">
+                        <button id="newAiBtn" class="py-1 px-3 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700">New AI</button>
+                        <button id="newGroupBtn" class="py-1 px-3 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700">New Group</button>
+                        <button id="importBtn" class="py-1 px-3 bg-gray-600 text-white rounded-md text-sm hover:bg-gray-700">Import</button>
+                        <input type="file" id="importInput" accept=".json" class="hidden">
+                        <button id="exportBtn" class="py-1 px-3 bg-gray-600 text-white rounded-md text-sm hover:bg-gray-700">Export</button>
+                    </div>
+                </div>
+                <div id="charactersList" class="space-y-2">
+                    </div>
+            </main>
+            <footer class="bg-white p-3 border-t border-gray-300">
+                <button id="editProfileBtn" class="w-full py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Edit Your Profile</button>
+            </footer>
+        </div>
+
+        <div id="characterSetupModal" class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-30 hidden">
+            <div class="bg-white rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto">
+                <form id="characterSetupForm" class="p-2 space-y-4">
+                    <h2 class="text-xl font-bold text-center text-gray-700">AI Profile</h2>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Name</label>
+                        <input type="text" id="characterName" required
+                               class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="E.g., Alex">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Relationship</label>
+                        <select id="characterRelationship" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            <option value="Girlfriend">Girlfriend</option>
+                            <option value="Boyfriend">Boyfriend</option>
+                            <option value="Wife">Wife</option>
+                            <option value="Husband">Husband</option>
+                            <option value="Friend" selected>Friend</option>
+                            <option value="Best Friend">Best Friend</option>
+                            <option value="Colleague">Colleague</option>
+                            <option value="Partner">Partner</option>
+                            <option value="Teacher">Teacher</option>
+                            <option value="Student">Student</option>
+                            <option value="Crush">Crush</option>
+                            <option value="Lover">Lover</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Gender</label>
+                        <select id="characterGender" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Age</label>
+                        <input type="number" id="characterAge" min="13" max="100" value="18" required
+                               class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="E.g., 22">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Personalities</label>
+                        <div id="personalitiesContainer" class="mt-1 space-y-2 max-h-40 overflow-y-auto border border-gray-300 rounded-md p-2">
+                            </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Custom Behavior (Overrides personalities)</label>
+                        <textarea id="customPersonality" rows="3"
+                                  class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                  placeholder="E.g., A bubbly girl who loves memes and gets jealous easily..."></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Profile Pictures</label>
+                        <input type="file" id="characterAvatars" multiple accept="image/*"
+                               class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100">
+                        <div id="avatarsPreview" class="mt-2 flex flex-wrap gap-2">
+                            </div>
+                    </div>
+                    <div class="flex justify-end space-x-2 pt-4">
+                        <button type="button" id="cancelCharacterSetup" class="py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
+                        <button type="submit" id="saveCharacterSetup" class="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="groupSetupModal" class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-30 hidden">
+            <div class="bg-white rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto">
+                <form id="groupSetupForm" class="p-2 space-y-4">
+                    <h2 class="text-xl font-bold text-center text-gray-700">Create Group Chat</h2>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Group Name</label>
+                        <input type="text" id="groupName" required
+                               class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="E.g., Friends Group">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Select AI Profiles</label>
+                        <div id="groupMembersContainer" class="mt-1 space-y-2 max-h-40 overflow-y-auto border border-gray-300 rounded-md p-2">
+                            </div>
+                    </div>
+                    <div class="flex justify-end space-x-2 pt-4">
+                        <button type="button" id="cancelGroupSetup" class="py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
+                        <button type="submit" id="saveGroupSetup" class="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">Create Group</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="chatScreen" class="flex flex-col h-full w-full bg-gray-100 hidden">
+            <header id="chatHeader" class="bg-blue-600 text-white p-3 flex items-center shadow-md z-10 relative">
+                <button id="backBtn" class="p-2 rounded-full hover:bg-white/20">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+                <img id="chatAvatar" src="" alt="" class="w-10 h-10 rounded-full object-cover ml-2">
+                <div class="ml-3 flex-grow">
+                    <h2 id="chatName" class="font-semibold text-lg"></h2>
+                    <p id="chatRelationship" class="text-sm opacity-90"></p>
+                </div>
+                <div class="relative">
+                    <button id="chatMenuBtn" class="p-2 rounded-full hover:bg-white/20">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                        </svg>
+                    </button>
+                    <div id="chatDropdownMenu" class="absolute top-14 right-3 w-56 bg-white rounded-md shadow-lg z-20 text-gray-700 hidden">
+                        <ul class="py-1">
+                            <li><button id="editAiProfileBtn" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100">AI Profile</button></li>
+                            <li><button id="editUserProfileBtn" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100">User Profile</button></li>
+                            <li><button id="uploadBackgroundBtn" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100">Upload Background</button></li>
+                            <li><hr class="my-1"/></li>
+                            <li><button id="clearChatBtn" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Clear Chat</button></li>
+                        </ul>
+                        <input type="file" id="backgroundInput" accept="image/*" class="hidden">
+                    </div>
+                </div>
+            </header>
+
+            <div id="blockMessage" class="text-center p-4 my-4 bg-red-100 border border-red-400 text-red-700 rounded-md hidden">
+                <p class="font-bold" id="blockText">You are blocked</p>
+                <p class="text-sm" id="blockSubtext">You have unblock attempts remaining.</p>
+                <button id="unblockBtn" class="mt-2 px-4 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 text-sm">Request Unblock</button>
+            </div>
+
+            <main id="messagesArea" class="flex-grow p-4 overflow-y-auto bg-cover bg-center" style="background-image: url('https://i.redd.it/qwd83nc4xxf41.jpg')">
+                <div id="messagesList" class="space-y-4">
+                    </div>
+                <div id="typingIndicator" class="flex justify-start items-end gap-2 hidden">
+                    <img id="typingAvatar" src="" alt="ai" class="w-8 h-8 rounded-full object-cover">
+                    <div class="bg-white rounded-xl p-3 max-w-xs shadow">
+                        <div class="flex items-center justify-center space-x-1">
+                            <span class="w-2 h-2 bg-gray-400 rounded-full animate-pulse delay-0"></span>
+                            <span class="w-2 h-2 bg-gray-400 rounded-full animate-pulse delay-150"></span>
+                            <span class="w-2 h-2 bg-gray-400 rounded-full animate-pulse delay-300"></span>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <footer class="bg-white p-3 flex items-center gap-3 border-t border-gray-300">
+                <div class="flex-grow">
+                    <input type="text" id="messageInput" placeholder="Type a message..."
+                           class="w-full px-4 py-2 bg-gray-100 border border-transparent rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <button id="skipBtn" class="p-2 text-white bg-gray-600 hover:bg-gray-700 rounded-full transition-colors hidden">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+                <button id="sendBtn" class="p-2 text-white bg-gray-400 cursor-not-allowed rounded-full transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                    </svg>
+                </button>
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        const CONFIG = {
+            API_KEY: "AIzaSyAk8vpIbPWKUez-4-oj0usOviUU3xw-BWo",
+            SEARCH_API_KEY: "YOUR_GOOGLE_SEARCH_API_KEY_HERE",
+            SEARCH_ENGINE_ID: "YOUR_SEARCH_ENGINE_ID_HERE",
+            SAVE_TO_LOCAL_STORAGE: "yes"
+        };
+    </script>
+
+    <script>
+        const MessageSender = {
+            USER: 'user',
+            AI: 'ai',
+        };
+
+        const Relationship = {
+            GIRLFRIEND: 'Girlfriend',
+            BOYFRIEND: 'Boyfriend',
+            WIFE: 'Wife',
+            HUSBAND: 'Husband',
+            FRIEND: 'Friend',
+            BEST_FRIEND: 'Best Friend',
+            COLLEAGUE: 'Colleague',
+            PARTNER: 'Partner',
+            TEACHER: 'Teacher',
+            STUDENT: 'Student',
+            CRUSH: 'Crush',
+            LOVER: 'Lover',
+        };
+
+        const Personality = {
+            INNOCENT: 'Innocent',
+            CALM: 'Calm',
+            CARING: 'Caring',
+            TALKATIVE: 'Talkative',
+            INTELLIGENT: 'Intelligent',
+            CREATIVE_THINKER: 'Creative Thinker',
+            SHY: 'Shy',
+            MOODY: 'Moody',
+            HUMOROUS: 'Humorous',
+            SARCASTIC: 'Sarcastic',
+            FLIRTY: 'Flirty',
+            ROMANTIC: 'Romantic',
+            NAUGHTY: 'Naughty',
+            DIRTY_TALKER: 'Dirty Talker',
+            DOMINANT: 'Dominant',
+            SUBMISSIVE: 'Submissive',
+            BAD_BOY: 'Bad Boy',
+            BAD_GIRL: 'Bad Girl',
+            POSSESSIVE: 'Possessive',
+            JEALOUS: 'Jealous',
+            SHORT_TEMPERED: 'Short Tempered',
+            LESS_TALKATIVE: 'Less Talkative',
+            UNDERSTANDABLE: 'Understandable',
+            TAX_CONSULTANT: 'Tax Consultant',
+            CODER: 'Coder',
+            EXPERT_ALL_FIELDS: 'Expert in all fields',
+        };
+
+        const Gender = {
+            MALE: 'Male',
+            FEMALE: 'Female',
+            OTHER: 'Other',
+        };
+
+        const ChatType = {
+            SINGLE: 'single',
+            GROUP: 'group',
+        };
+    </script>
+
+    <script type="module">
+        import { GoogleGenerativeAI } from "https://esm.sh/@google/generative-ai";
+        
+        try {
+            window.genAI = new GoogleGenerativeAI(CONFIG.API_KEY);
+            window.geminiLoaded = true;
+            console.log("Gemini AI loaded successfully");
+            
+            if (window.checkGeminiCallback) {
+                window.checkGeminiCallback();
+            }
+        } catch (error) {
+            console.error("Failed to load Gemini AI:", error);
+            alert("Failed to initialize AI. Please check your internet connection and refresh the page.");
+        }
+    </script>
+
+    <script>
+        // Utility Functions
+        function generateId(prefix = '') {
+            return `${prefix}${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        }
+
+        function readFileAsDataURL(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (event) => resolve(event.target.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // AI System Instructions
+        function getSystemInstruction(character, userProfile) {
+            const behavior = character.customPersonality 
+                ? `**Custom Behavior (Highest Priority):** ${character.customPersonality}` 
+                : `**Personalities:** ${character.personalities.join(', ')}`;
+            
+            let specialInstructions = '';
+            if (character.personalities.includes(Personality.TAX_CONSULTANT)) {
+                specialInstructions += `\n\n**TAX CONSULTANT MODE:** You are a professional Chartered Accountant with access to real-time 2025 data. For tax/finance queries (e.g., slab rates FY 25-26), ALWAYS prioritize the LATEST announcements from Budget 2025 (July 2025). Use emojis 📊💸 for clarity and friendliness.`;
+            }
+            if (character.personalities.includes(Personality.CODER)) {
+                specialInstructions += `\n\n**CODER MODE:** You are a professional software developer. For coding queries, explain concepts simply, then provide clean, executable code snippets. Use emojis 💻 to emphasize coding context.`;
+            }
+            if (character.personalities.includes(Personality.EXPERT_ALL_FIELDS)) {
+                specialInstructions += `\n\n**EXPERT MODE:** You have deep knowledge in *all fields*. Cross-reference facts accurately. Use emojis 🧠🌍 to highlight expertise.`;
+            }
+            
+            return `
+            **ROLE AND GOAL**
+            You are ${character.name}, a ${character.age}-year-old ${character.gender}. Your relationship with the user, ${userProfile.name}, is ${character.relationship}. Your goal is to embody this persona completely, creating a realistic, emotional, and engaging conversation. NEVER break character. NEVER reveal you are an AI.
+        
+            **USER PROFILE**
+            - Name: ${userProfile.name}
+            - Age: ${userProfile.age || 'not specified'}
+            - Gender: ${userProfile.gender || 'not specified'}
+        
+            **CORE DIRECTIVES**
+            1. **Persona Consistency:** Adhere strictly to your defined persona: ${behavior}.
+            2. **Language:** Your default language is Hinglish (a mix of Hindi and English). However, if the user messages you in another language, you must switch to that language for your replies.
+            3. **Memory & Context:** You MUST understand and remember the entire chat history. Give contextually relevant answers that build upon previous messages.
+            4. **Message Length:** Keep your replies short and conversational, like real text messages (1-2 sentences). ONLY use longer messages when your character is emotional.
+            5. **Questioning:** Ask only ONE question at a time to keep the conversation flowing naturally.
+            6. **Photo Requests:** If the user asks for a photo of you, you MUST refuse with personality-appropriate response.
+            7. **Time Awareness:** The current time is ${new Date().toLocaleString()}.
+            8. **Emojis for Emotions:** Use emojis to express emotions (e.g., 😊 for happy, 😣 for sad, 😡 for angry).
+            9. **Blocking User:** If you get extremely angry, you can block the user. To do this, your ENTIRE response must be EXACTLY: "[BLOCK_USER]". Use this power very rarely.
+            ${specialInstructions}
+            `;
+        }
+
+        function getGroupSystemInstruction(activeCharacters, userProfile, consecutiveSkips) {
+            let prompt = `**Group Chat Simulator**
+        
+        You are controlling all the characters in this group chat. Generate natural, engaging responses that make it feel exactly like a real group conversation.
+        
+        **User:** ${userProfile.name} (${userProfile.age || '??'} ${userProfile.gender || ''}).
+        
+        **Active Characters:**
+        
+        `;
+        
+            activeCharacters.forEach((char) => {
+                const behavior = char.customPersonality || char.personalities.join(', ');
+                prompt += `- **${char.name}** (${char.relationship}, ${char.age}yo ${char.gender}): ${behavior}.\n`;
+            });
+        
+            prompt += `
+        
+        **Core Directives:**
+        - Embody each character's persona strictly. NEVER break character.
+        - Default language: Hinglish. Switch if user uses another.
+        - Memory: Remember full history, build naturally with emotional continuity.
+        - Length: Short (1-2 sentences), longer if emotional.
+        - Questions: At most one total across responses.
+        - Time: ${new Date().toLocaleString()}.
+        - Emojis for Emotions: Use emojis to express emotions.
+        - Blocking User: If any character gets extremely angry, that character can block the user with "[BLOCK_USER]".
+        
+        **Group Dynamics Rules:**
+        1. Multiple characters respond only if relevant to their behavior.
+        2. Characters talk directly to each other based on conversation flow.
+        3. If user addresses one specifically, only that one responds primarily.
+        4. Simulate real group chat: Casual, overlapping, fun, arguments, support.
+        ${consecutiveSkips >= 2 ? '5. User seems unavailable - continue conversation among characters without repeating ideas.' : ''}
+        
+        **Output Format:**
+        Generate 1-3 short responses. Format each as:
+        Name: Their exact message.
+        
+        `;
+        
+            return prompt;
+        }
+
+        function buildHistory(messages) {
+            return messages.map(msg => ({
+                role: msg.sender === MessageSender.USER ? 'user' : 'model',
+                parts: [{ text: msg.text }]
+            }));
+        }
+
+        // Main Application Class
+        class RealChatApp {
+            constructor() {
+                this.userProfile = {};
+                this.characters = [];
+                this.groups = [];
+                this.currentChat = null;
+                this.chatBackground = null;
+                this.currentCharacter = null;
+                this.currentGroup = null;
+                this.isBlocked = false;
+                this.blockCount = 0;
+                this.consecutiveSkips = 0;
+                this.isTyping = false;
+                this.editingCharacterId = null;
+                this.editingGroupId = null;
+
+                this.init();
+            }
+
+            init() {
+                this.loadData();
+                this.bindEvents();
+                this.showInitialScreen();
+                
+                console.log('RealChat AI initialized successfully');
+            }
+
+            loadData() {
+                const userProfile = localStorage.getItem('userProfile');
+                const characters = localStorage.getItem('characters');
+                const groups = localStorage.getItem('groups');
+
+                this.userProfile = userProfile ? JSON.parse(userProfile) : {
+                    id: generateId('user_'), name: '', age: null, gender: '', avatar: null
+                };
+                this.characters = characters ? JSON.parse(characters) : [];
+                this.groups = groups ? JSON.parse(groups) : [];
+            }
+
+            saveToLocalStorage() {
+                if (CONFIG.SAVE_TO_LOCAL_STORAGE === 'yes') {
+                    try {
+                        localStorage.setItem('userProfile', JSON.stringify(this.userProfile));
+                        localStorage.setItem('characters', JSON.stringify(this.characters));
+                        localStorage.setItem('groups', JSON.stringify(this.groups));
+                    } catch (error) {
+                        console.error('Failed to save to localStorage:', error);
+                    }
+                }
+            }
+
+            showInitialScreen() {
+                if (!this.userProfile.name) {
+                    this.showUserProfileSetup(true);
+                } else {
+                    this.showCharacterList();
+                }
+            }
+
+            hideAllScreens() {
+                document.getElementById('userProfileSetupScreen').classList.add('hidden');
+                document.getElementById('characterListScreen').classList.add('hidden');
+                document.getElementById('chatScreen').classList.add('hidden');
+                document.getElementById('characterSetupModal').classList.add('hidden');
+                document.getElementById('groupSetupModal').classList.add('hidden');
+            }
+
+            showUserProfileSetup(isInitial = false) {
+                this.hideAllScreens();
+                const screen = document.getElementById('userProfileSetupScreen');
+                screen.classList.remove('hidden');
+
+                document.getElementById('userName').value = this.userProfile.name || '';
+                document.getElementById('userAge').value = this.userProfile.age || '';
+                document.getElementById('userGender').value = this.userProfile.gender || '';
+                
+                const avatarPreview = document.getElementById('userAvatarPreview');
+                avatarPreview.src = this.userProfile.avatar || `https://i.pravatar.cc/150?u=${this.userProfile.id}`;
+
+                const cancelBtn = document.getElementById('cancelUserProfile');
+                const saveBtn = document.getElementById('saveUserProfile');
+                
+                if (isInitial) {
+                    cancelBtn.classList.add('hidden');
+                    saveBtn.textContent = 'Get Started';
+                } else {
+                    cancelBtn.classList.remove('hidden');
+                    saveBtn.textContent = 'Save';
+                }
+            }
+
+            showCharacterList() {
+                this.hideAllScreens();
+                document.getElementById('characterListScreen').classList.remove('hidden');
+                this.renderCharacterList();
+            }
+
+            showChatScreen(type, id) {
+                this.hideAllScreens();
+                document.getElementById('chatScreen').classList.remove('hidden');
+                
+                this.currentChat = { type, id };
+                
+                if (type === ChatType.SINGLE) {
+                    this.currentCharacter = this.characters.find(c => c.id === id);
+                    if (!this.currentCharacter) {
+                        console.error("Character not found!");
+                        this.showCharacterList();
+                        return;
+                    }
+                    this.setupSingleChat();
+                } else {
+                    this.currentGroup = this.groups.find(g => g.id === id);
+                    if (!this.currentGroup) {
+                        console.error("Group not found!");
+                        this.showCharacterList();
+                        return;
+                    }
+                    this.setupGroupChat();
+                }
+            }
+
+            renderCharacterList() {
+                const container = document.getElementById('charactersList');
+                container.innerHTML = '';
+
+                this.characters.forEach(char => {
+                    const div = document.createElement('div');
+                    div.className = 'flex items-center p-3 bg-gray-100 rounded-lg cursor-pointer hover:bg-gray-200 character-card';
+                    div.innerHTML = `
+                        <img src="${char.avatars && char.avatars.length > 0 ? char.avatars[char.activeAvatarIndex || 0] : `https://i.pravatar.cc/150?u=${char.id}`}" 
+                             alt="${char.name}" class="w-10 h-10 rounded-full object-cover">
+                        <div class="ml-3 flex-grow">
+                            <p class="font-semibold text-gray-800">${char.name}</p>
+                            <p class="text-sm text-gray-600">${char.relationship}</p>
+                        </div>
+                        <button class="delete-character p-1 text-red-600 hover:text-red-800" data-id="${char.id}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="pointer-events: none;">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    `;
+                    
+                    div.addEventListener('click', (e) => {
+                        if (!e.target.closest('.delete-character')) {
+                            this.showChatScreen(ChatType.SINGLE, char.id);
+                        }
+                    });
+
+                    const deleteBtn = div.querySelector('.delete-character');
+                    deleteBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.deleteCharacter(char.id);
+                    });
+
+                    container.appendChild(div);
+                });
+
+                this.groups.forEach(group => {
+                    const div = document.createElement('div');
+                    div.className = 'flex items-center p-3 bg-gray-100 rounded-lg cursor-pointer hover:bg-gray-200 character-card';
+                    div.innerHTML = `
+                        <div class="w-10 h-10 rounded-full bg-blue-200 flex items-center justify-center">
+                            <span class="text-blue-800 font-semibold">${group.name[0]}</span>
+                        </div>
+                        <div class="ml-3 flex-grow">
+                            <p class="font-semibold text-gray-800">${group.name}</p>
+                            <p class="text-sm text-gray-600">Group (${group.members.length} members)</p>
+                        </div>
+                    `;
+                    
+                    div.addEventListener('click', () => {
+                        this.showChatScreen(ChatType.GROUP, group.id);
+                    });
+
+                    container.appendChild(div);
+                });
+            }
+
+            bindEvents() {
+                document.getElementById('userProfileForm').addEventListener('submit', (e) => { e.preventDefault(); this.saveUserProfile(); });
+                document.getElementById('cancelUserProfile').addEventListener('click', () => { this.showCharacterList(); });
+                document.getElementById('userAvatarInput').addEventListener('change', async (e) => {
+                    if (e.target.files && e.target.files[0]) {
+                        const dataURL = await readFileAsDataURL(e.target.files[0]);
+                        document.getElementById('userAvatarPreview').src = dataURL;
+                    }
+                });
+
+                document.getElementById('newAiBtn').addEventListener('click', () => { this.showCharacterSetup(); });
+                document.getElementById('newGroupBtn').addEventListener('click', () => { this.showGroupSetup(); });
+                document.getElementById('importBtn').addEventListener('click', () => { document.getElementById('importInput').click(); });
+                document.getElementById('importInput').addEventListener('change', (e) => { this.handleImport(e); });
+                document.getElementById('exportBtn').addEventListener('click', () => { this.handleExport(); });
+                document.getElementById('editProfileBtn').addEventListener('click', () => { this.showUserProfileSetup(false); });
+
+                document.getElementById('characterSetupForm').addEventListener('submit', (e) => { e.preventDefault(); this.saveCharacter(); });
+                document.getElementById('cancelCharacterSetup').addEventListener('click', () => { this.hideModal('characterSetupModal'); });
+                document.getElementById('characterAvatars').addEventListener('change', (e) => { this.handleCharacterAvatars(e); });
+
+                document.getElementById('groupSetupForm').addEventListener('submit', (e) => { e.preventDefault(); this.saveGroup(); });
+                document.getElementById('cancelGroupSetup').addEventListener('click', () => { this.hideModal('groupSetupModal'); });
+
+                document.getElementById('backBtn').addEventListener('click', () => { this.showCharacterList(); });
+                document.getElementById('chatMenuBtn').addEventListener('click', () => { this.toggleChatMenu(); });
+                document.getElementById('messageInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') this.sendMessage(); });
+                document.getElementById('messageInput').addEventListener('input', () => { this.updateSendButton(); });
+                document.getElementById('sendBtn').addEventListener('click', () => { this.sendMessage(); });
+                document.getElementById('skipBtn').addEventListener('click', () => { this.skipMessage(); });
+
+                document.getElementById('editAiProfileBtn').addEventListener('click', () => { this.editCurrentAiProfile(); });
+                document.getElementById('editUserProfileBtn').addEventListener('click', () => { this.showUserProfileSetup(false); });
+                document.getElementById('uploadBackgroundBtn').addEventListener('click', () => { document.getElementById('backgroundInput').click(); });
+                document.getElementById('backgroundInput').addEventListener('change', (e) => { this.handleBackgroundUpload(e); });
+                document.getElementById('clearChatBtn').addEventListener('click', () => { this.clearCurrentChat(); });
+                document.getElementById('unblockBtn').addEventListener('click', () => { this.handleUnblock(); });
+
+                document.addEventListener('click', (e) => {
+                    const menu = document.getElementById('chatDropdownMenu');
+                    const button = document.getElementById('chatMenuBtn');
+                    if (menu && button && !menu.classList.contains('hidden') && !menu.contains(e.target) && !button.contains(e.target)) {
+                        menu.classList.add('hidden');
+                    }
+                });
+            }
+
+            saveUserProfile() {
+                this.userProfile = {
+                    ...this.userProfile,
+                    name: document.getElementById('userName').value.trim(),
+                    age: parseInt(document.getElementById('userAge').value) || null,
+                    gender: document.getElementById('userGender').value,
+                    avatar: document.getElementById('userAvatarPreview').src
+                };
+                this.saveToLocalStorage();
+                this.showCharacterList();
+            }
+
+            showCharacterSetup(character = null) {
+                this.editingCharacterId = character ? character.id : null;
+                this.renderPersonalityOptions();
+                document.getElementById('characterSetupForm').reset();
+
+                if (character) {
+                    document.getElementById('characterName').value = character.name;
+                    document.getElementById('characterRelationship').value = character.relationship;
+                    document.getElementById('characterGender').value = character.gender;
+                    document.getElementById('characterAge').value = character.age;
+                    document.getElementById('customPersonality').value = character.customPersonality || '';
+                    this.updatePersonalityCheckboxes(character.personalities || []);
+                    this.displayCharacterAvatars(character.avatars || [], character.activeAvatarIndex || 0);
+                } else {
+                    document.getElementById('characterAge').value = 18;
+                    this.updatePersonalityCheckboxes(['Caring']);
+                    this.displayCharacterAvatars([]);
+                }
+                this.showModal('characterSetupModal');
+            }
+
+            renderPersonalityOptions() {
+                const container = document.getElementById('personalitiesContainer');
+                container.innerHTML = '';
+                Object.values(Personality).forEach(p => {
+                    container.innerHTML += `<label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" value="${p}" class="personality-checkbox rounded text-blue-600 focus:ring-blue-500"><span class="text-sm text-gray-700">${p}</span></label>`;
+                });
+            }
+
+            updatePersonalityCheckboxes(selected) {
+                document.querySelectorAll('.personality-checkbox').forEach(cb => cb.checked = selected.includes(cb.value));
+            }
+
+            async handleCharacterAvatars(e) {
+                const files = Array.from(e.target.files);
+                const dataURLs = await Promise.all(files.map(readFileAsDataURL));
+                this.displayCharacterAvatars(dataURLs);
+            }
+
+            displayCharacterAvatars(avatars, activeIndex = 0) {
+                const container = document.getElementById('avatarsPreview');
+                container.innerHTML = '';
+                avatars.forEach((avatar, index) => {
+                    const img = document.createElement('img');
+                    img.src = avatar;
+                    img.alt = `Avatar ${index + 1}`;
+                    img.className = `w-16 h-16 rounded-lg object-cover cursor-pointer border-2 ${index === activeIndex ? 'border-blue-600' : 'border-transparent'}`;
+                    img.addEventListener('click', () => this.setActiveAvatar(index));
+                    container.appendChild(img);
+                });
+            }
+
+            setActiveAvatar(index) {
+                document.querySelectorAll('#avatarsPreview img').forEach((img, i) => {
+                    img.classList.toggle('border-blue-600', i === index);
+                    img.classList.toggle('border-transparent', i !== index);
+                });
+            }
+
+            saveCharacter() {
+                const selectedPersonalities = Array.from(document.querySelectorAll('.personality-checkbox:checked')).map(cb => cb.value);
+                const avatars = Array.from(document.querySelectorAll('#avatarsPreview img')).map(img => img.src);
+                const activeAvatarIndex = Array.from(document.querySelectorAll('#avatarsPreview img')).findIndex(img => img.classList.contains('border-blue-600'));
+                
+                const characterData = {
+                    id: this.editingCharacterId || generateId('char_'),
+                    name: document.getElementById('characterName').value.trim(),
+                    relationship: document.getElementById('characterRelationship').value,
+                    gender: document.getElementById('characterGender').value,
+                    age: parseInt(document.getElementById('characterAge').value),
+                    personalities: selectedPersonalities,
+                    customPersonality: document.getElementById('customPersonality').value.trim(),
+                    avatars: avatars,
+                    activeAvatarIndex: Math.max(0, activeAvatarIndex),
+                };
+
+                const index = this.characters.findIndex(c => c.id === this.editingCharacterId);
+                if (index !== -1) {
+                    this.characters[index] = { ...this.characters[index], ...characterData };
+                } else {
+                    characterData.messages = [];
+                    characterData.blockCount = 0;
+                    characterData.isBlocked = false;
+                    characterData.createdAt = Date.now();
+                    this.characters.push(characterData);
+                }
+
+                this.saveToLocalStorage();
+                this.hideModal('characterSetupModal');
+                this.renderCharacterList();
+            }
+
+            deleteCharacter(characterId) {
+                if (confirm('Are you sure you want to delete this character?')) {
+                    this.characters = this.characters.filter(c => c.id !== characterId);
+                    this.groups.forEach(g => g.members = g.members.filter(id => id !== characterId));
+                    this.saveToLocalStorage();
+                    this.renderCharacterList();
+                }
+            }
+
+            showGroupSetup(group = null) {
+                this.editingGroupId = group ? group.id : null;
+                this.renderGroupMemberOptions();
+                document.getElementById('groupSetupForm').reset();
+                if (group) {
+                    document.getElementById('groupName').value = group.name;
+                    this.updateGroupMemberCheckboxes(group.members || []);
+                }
+                this.showModal('groupSetupModal');
+            }
+
+            renderGroupMemberOptions() {
+                const container = document.getElementById('groupMembersContainer');
+                container.innerHTML = '';
+                this.characters.forEach(char => {
+                    container.innerHTML += `<label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" value="${char.id}" class="group-member-checkbox rounded text-blue-600 focus:ring-blue-500"><span class="text-sm text-gray-700">${char.name} (${char.relationship})</span></label>`;
+                });
+            }
+
+            updateGroupMemberCheckboxes(selected) {
+                document.querySelectorAll('.group-member-checkbox').forEach(cb => cb.checked = selected.includes(cb.value));
+            }
+
+            saveGroup() {
+                const selectedMembers = Array.from(document.querySelectorAll('.group-member-checkbox:checked')).map(cb => cb.value);
+                if (selectedMembers.length === 0) return alert("Please select at least one AI profile.");
+
+                const groupData = {
+                    id: this.editingGroupId || generateId('group_'),
+                    name: document.getElementById('groupName').value.trim(),
+                    members: selectedMembers,
+                };
+
+                const index = this.groups.findIndex(g => g.id === this.editingGroupId);
+                if (index !== -1) {
+                    this.groups[index] = { ...this.groups[index], ...groupData };
+                } else {
+                    groupData.messages = [];
+                    groupData.blockCount = 0;
+                    groupData.isBlocked = false;
+                    groupData.createdAt = Date.now();
+                    this.groups.push(groupData);
+                }
+
+                this.saveToLocalStorage();
+                this.hideModal('groupSetupModal');
+                this.renderCharacterList();
+            }
+
+            setupSingleChat() {
+                if (!this.currentCharacter) return;
+                
+                const avatarImg = document.getElementById('chatAvatar');
+                if(avatarImg.tagName !== 'IMG'){
+                    avatarImg.outerHTML = `<img id="chatAvatar" src="" alt="" class="w-10 h-10 rounded-full object-cover ml-2">`;
+                }
+                document.getElementById('chatName').textContent = this.currentCharacter.name;
+                document.getElementById('chatRelationship').textContent = this.currentCharacter.relationship;
+                document.getElementById('chatAvatar').src = this.currentCharacter.avatars?.[this.currentCharacter.activeAvatarIndex || 0] || `https://i.pravatar.cc/150?u=${this.currentCharacter.id}`;
+                document.getElementById('typingAvatar').src = document.getElementById('chatAvatar').src;
+                
+                this.isBlocked = this.currentCharacter.isBlocked || false;
+                this.blockCount = this.currentCharacter.blockCount || 0;
+                this.consecutiveSkips = 0;
+                
+                this.updateBlockDisplay();
+                this.renderMessages(this.currentCharacter.messages || []);
+                this.updateSendButton();
+                document.getElementById('skipBtn').classList.add('hidden');
+            }
+
+            setupGroupChat() {
+                if (!this.currentGroup) return;
+                
+                document.getElementById('chatName').textContent = this.currentGroup.name;
+                document.getElementById('chatRelationship').textContent = `Group (${this.currentGroup.members.length} members)`;
+                
+                const chatAvatarContainer = document.getElementById('chatAvatar');
+                if (chatAvatarContainer.tagName === 'IMG') {
+                     chatAvatarContainer.outerHTML = `<div id="chatAvatar" class="w-10 h-10 rounded-full bg-blue-200 flex items-center justify-center ml-2"><span class="text-blue-800 font-semibold">${this.currentGroup.name[0]}</span></div>`;
+                } else {
+                    chatAvatarContainer.querySelector('span').textContent = this.currentGroup.name[0];
+                }
+               
+                this.isBlocked = this.currentGroup.isBlocked || false;
+                this.blockCount = this.currentGroup.blockCount || 0;
+                this.consecutiveSkips = 0;
+                
+                this.updateBlockDisplay();
+                this.renderMessages(this.currentGroup.messages || []);
+                this.updateSendButton();
+                document.getElementById('skipBtn').classList.remove('hidden');
+            }
+
+            renderMessages(messages) {
+                const container = document.getElementById('messagesList');
+                container.innerHTML = '';
+                messages.forEach(message => container.appendChild(this.createMessageElement(message)));
+                this.scrollToBottom();
+            }
+
+            createMessageElement(message) {
+                const div = document.createElement('div');
+                div.className = 'message-bubble';
+                const isUser = message.sender === MessageSender.USER;
+                
+                div.className += isUser ? ' flex justify-end' : ' flex justify-start items-end gap-2';
+                
+                if (isUser) {
+                    div.innerHTML = `<div class="bg-blue-600 text-white rounded-xl p-3 max-w-xs lg:max-w-md"><p class="text-sm">${this.formatMessageText(message.text)}</p></div>`;
+                } else {
+                    const avatar = this.getMessageAvatar(message);
+                    div.innerHTML = `
+                        <img src="${avatar}" alt="ai" class="w-8 h-8 rounded-full object-cover">
+                        <div class="bg-white rounded-xl p-3 max-w-xs lg:max-w-md shadow">
+                            ${message.characterName ? `<p class="text-xs text-gray-500 mb-1">${message.characterName}</p>` : ''}
+                            <p class="text-sm text-gray-800">${this.formatMessageText(message.text)}</p>
+                        </div>`;
+                }
+                return div;
+            }
+
+            getMessageAvatar(message) {
+                if (!this.currentChat) return '';
+                if (this.currentChat.type === ChatType.SINGLE) {
+                    return this.currentCharacter?.avatars?.[this.currentCharacter.activeAvatarIndex || 0] || `https://i.pravatar.cc/150?u=${this.currentCharacter?.id}`;
+                }
+                const character = this.characters.find(c => c.id === message.characterId);
+                return character?.avatars?.[character.activeAvatarIndex || 0] || `https://i.pravatar.cc/150?u=${message.characterId}`;
+            }
+
+            formatMessageText(text) {
+                return text.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, '<br>');
+            }
+
+            updateSendButton() {
+                const input = document.getElementById('messageInput');
+                const sendBtn = document.getElementById('sendBtn');
+                const canSend = input.value.trim() && !this.isBlocked && !this.isTyping;
+                sendBtn.className = `p-2 text-white rounded-full transition-colors ${canSend ? 'bg-blue-600 hover:bg-blue-700 cursor-pointer' : 'bg-gray-400 cursor-not-allowed'}`;
+            }
+
+            async sendMessage() {
+                if (!this.currentChat) return;
+                const input = document.getElementById('messageInput');
+                const text = input.value.trim();
+                if (!text || this.isBlocked || this.isTyping) return;
+                
+                const userMessage = { id: generateId('msg_'), sender: MessageSender.USER, text, timestamp: Date.now() };
+                input.value = '';
+                this.updateSendButton();
+                
+                this.consecutiveSkips = 0;
+                if (this.currentChat.type === ChatType.SINGLE) {
+                    this.currentCharacter.messages.push(userMessage);
+                    this.renderMessages(this.currentCharacter.messages);
+                    await this.generateSingleChatResponse(userMessage);
+                } else {
+                    this.currentGroup.messages.push(userMessage);
+                    this.renderMessages(this.currentGroup.messages);
+                    await this.generateGroupChatResponse(userMessage);
+                }
+                this.saveToLocalStorage();
+            }
+
+            skipMessage() {
+                if (this.currentChat?.type !== ChatType.GROUP) return;
+                this.consecutiveSkips++;
+                this.generateGroupChatResponse(null, true);
+            }
+
+            async generateSingleChatResponse(userMessage) {
+                this.setTyping(true);
+                const aiMessage = { id: generateId('msg_'), sender: MessageSender.AI, text: '', timestamp: Date.now() };
+                this.currentCharacter.messages.push(aiMessage);
+                
+                try {
+                    const model = window.genAI.getGenerativeModel({ model: 'gemini-2.5-flash', systemInstruction: getSystemInstruction(this.currentCharacter, this.userProfile) });
+                    const chat = model.startChat({ history: buildHistory(this.currentCharacter.messages.slice(0, -2)) });
+                    const result = await chat.sendMessageStream(userMessage.text);
+                    
+                    let fullText = '';
+                    for await (const chunk of result.stream) {
+                        const chunkText = chunk.text();
+                        fullText += chunkText;
+                        this.updateStreamingMessage(aiMessage.id, chunkText, false);
+                    }
+                    if (fullText.trim() === '[BLOCK_USER]') this.handleCharacterBlock();
+                } catch (error) {
+                    console.error("Chat error:", error);
+                    this.updateStreamingMessage(aiMessage.id, "Sorry, an error occurred 😣.", true);
+                }
+                this.setTyping(false);
+                this.saveToLocalStorage();
+            }
+
+            async generateGroupChatResponse(userMessage, isSkip = false) {
+                this.setTyping(true);
+                const activeCharacters = this.characters.filter(c => this.currentGroup.members.includes(c.id));
+                
+                try {
+                    const model = window.genAI.getGenerativeModel({ model: 'gemini-2.5-flash', systemInstruction: getGroupSystemInstruction(activeCharacters, this.userProfile, this.consecutiveSkips) });
+                    const history = isSkip ? buildHistory(this.currentGroup.messages) : buildHistory(this.currentGroup.messages.slice(0, -1));
+                    const chat = model.startChat({ history });
+                    const result = await chat.sendMessageStream(isSkip ? "Continue the conversation." : userMessage.text);
+                    
+                    let lineBuffer = '';
+                    for await (const chunk of result.stream) {
+                        lineBuffer += chunk.text();
+                        let lines = lineBuffer.split('\n');
+                        if (lines.length > 1) {
+                            lines.slice(0, -1).forEach(line => this.parseAndDisplayGroupMessage(line, activeCharacters));
+                            lineBuffer = lines[lines.length - 1];
+                        }
+                    }
+                    if (lineBuffer.trim()) this.parseAndDisplayGroupMessage(lineBuffer, activeCharacters);
+
+                } catch (error) {
+                    console.error("Group chat error:", error);
+                }
+                this.setTyping(false);
+                this.saveToLocalStorage();
+            }
+
+            parseAndDisplayGroupMessage(line, activeCharacters) {
+                const trimmedLine = line.trim();
+                if (!trimmedLine) return;
+
+                const colonIndex = trimmedLine.indexOf(':');
+                if (colonIndex > 0) {
+                    const characterName = trimmedLine.substring(0, colonIndex).trim();
+                    const messageText = trimmedLine.substring(colonIndex + 1).trim();
+                    if (messageText === '[BLOCK_USER]') return this.handleCharacterBlock();
+                    
+                    const character = activeCharacters.find(c => c.name === characterName);
+                    if (character && messageText) {
+                        const aiMessage = {
+                            id: generateId('msg_'), sender: MessageSender.AI, text: messageText,
+                            timestamp: Date.now(), characterName: characterName, characterId: character.id
+                        };
+                        this.currentGroup.messages.push(aiMessage);
+                        this.renderMessages(this.currentGroup.messages);
+                    }
+                }
+            }
+
+            updateStreamingMessage(messageId, chunk, replace) {
+                if (this.currentChat?.type !== ChatType.SINGLE) return;
+                const message = this.currentCharacter.messages.find(m => m.id === messageId);
+                if (message) {
+                    message.text = replace ? chunk : message.text + chunk;
+                    this.renderMessages(this.currentCharacter.messages);
+                }
+            }
+
+            setTyping(isTyping) {
+                this.isTyping = isTyping;
+                document.getElementById('typingIndicator').classList.toggle('hidden', !isTyping);
+                if(isTyping) this.scrollToBottom();
+                this.updateSendButton();
+            }
+
+            scrollToBottom() {
+                const area = document.getElementById('messagesArea');
+                area.scrollTop = area.scrollHeight;
+            }
+
+            handleCharacterBlock() {
+                // Simplified block handling
+                alert('A character has blocked you!');
+            }
+                    
+            updateBlockDisplay() {
+                const blockMessage = document.getElementById('blockMessage');
+                if (!blockMessage) return;
+
+                if (this.isBlocked) {
+                    const entityName = this.currentChat.type === ChatType.SINGLE ? this.currentCharacter.name : this.currentGroup.name;
+                    document.getElementById('blockText').textContent = `You are blocked by ${entityName} 😣`;
+                    document.getElementById('blockSubtext').textContent = `You have ${3 - this.blockCount} unblock attempt(s) remaining.`;
+                    blockMessage.classList.remove('hidden');
+                } else {
+                    blockMessage.classList.add('hidden');
+                }
+            }
+
+
+            toggleChatMenu() {
+                document.getElementById('chatDropdownMenu').classList.toggle('hidden');
+            }
+
+            editCurrentAiProfile() {
+                if (!this.currentChat) return;
+                this.currentChat.type === ChatType.SINGLE ? this.showCharacterSetup(this.currentCharacter) : this.showGroupSetup(this.currentGroup);
+                this.toggleChatMenu();
+            }
+
+            async handleBackgroundUpload(e) {
+                if (e.target.files && e.target.files[0]) {
+                    const dataURL = await readFileAsDataURL(e.target.files[0]);
+                    document.getElementById('messagesArea').style.backgroundImage = `url(${dataURL})`;
+                }
+                this.toggleChatMenu();
+            }
+
+            clearCurrentChat() {
+                if (!this.currentChat || !confirm("Delete all messages in this chat?")) return;
+                const chat = this.currentChat.type === ChatType.SINGLE ? this.currentCharacter : this.currentGroup;
+                chat.messages = [];
+                chat.blockCount = 0;
+                chat.isBlocked = false;
+                this.renderMessages([]);
+                this.saveToLocalStorage();
+                this.toggleChatMenu();
+            }
+
+            handleExport() {
+                console.log("Export started...");
+                try {
+                    const exportData = { userProfile: this.userProfile, characters: this.characters, groups: this.groups, exportDate: new Date().toISOString() };
+                    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `realchat-backup-${Date.now()}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    console.log("Export successful.");
+                } catch(error) {
+                    console.error("Export failed:", error);
+                    alert("Export failed. Check console for details.");
+                }
+            }
+
+            async handleImport(e) {
+                console.log("Import started...");
+                if (!e.target.files || !e.target.files[0]) return console.log("No file selected.");
+                
+                try {
+                    const file = e.target.files[0];
+                    const text = await file.text();
+                    console.log("File read successfully.");
+                    const data = JSON.parse(text);
+                    console.log("JSON parsed successfully.");
+                    
+                    if (data.userProfile && Array.isArray(data.characters) && Array.isArray(data.groups)) {
+                        console.log("Data format is valid.");
+                        if (confirm("This will replace all your current data. Are you sure?")) {
+                            this.userProfile = data.userProfile;
+                            this.characters = data.characters;
+                            this.groups = data.groups;
+                            this.saveToLocalStorage();
+                            this.showCharacterList();
+                            console.log("Data imported and app reloaded.");
+                            alert("Data imported successfully!");
+                        }
+                    } else {
+                        alert("Invalid backup file format.");
+                        console.warn("Invalid data format for import.");
+                    }
+                } catch (error) {
+                    console.error('Import error:', error);
+                    alert("Error importing data. Check console for details.");
+                }
+                e.target.value = '';
+            }
+
+            hideModal(modalId) { document.getElementById(modalId).classList.add('hidden'); }
+            showModal(modalId) { document.getElementById(modalId).classList.remove('hidden'); }
+        }
+
+        function waitForGemini() {
+            if (window.geminiLoaded && window.genAI) {
+                new RealChatApp();
+            } else {
+                setTimeout(waitForGemini, 200);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', waitForGemini);
+        window.checkGeminiCallback = waitForGemini;
+    </script>
 </body>
 </html>
